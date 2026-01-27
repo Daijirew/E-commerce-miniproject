@@ -2,83 +2,216 @@ import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import api from '../../services/api';
 import './Admin.css';
 
+// Currency formatter - created once outside component
+const currencyFormatter = new Intl.NumberFormat('th-TH', {
+    style: 'currency',
+    currency: 'THB',
+    minimumFractionDigits: 0,
+});
+
+// Date formatter
+const dateFormatter = new Intl.DateTimeFormat('th-TH', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+});
+
+// Status configuration
+const STATUS_CONFIG = {
+    pending: { label: 'รอดำเนินการ', color: '#f59e0b', bg: '#fef3c7', icon: '⏳' },
+    processing: { label: 'กำลังดำเนินการ', color: '#3b82f6', bg: '#dbeafe', icon: '🔄' },
+    shipped: { label: 'จัดส่งแล้ว', color: '#8b5cf6', bg: '#ede9fe', icon: '🚚' },
+    delivered: { label: 'ส่งมอบแล้ว', color: '#10b981', bg: '#d1fae5', icon: '✅' },
+    cancelled: { label: 'ยกเลิก', color: '#ef4444', bg: '#fee2e2', icon: '❌' },
+};
+
+const STATUS_OPTIONS = Object.keys(STATUS_CONFIG);
+
+// Memoized Status Badge Component
+const StatusBadge = memo(({ status }) => {
+    const config = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
+    return (
+        <span
+            className="status-badge-enhanced"
+            style={{
+                color: config.color,
+                backgroundColor: config.bg,
+            }}
+        >
+            <span className="status-icon">{config.icon}</span>
+            {config.label}
+        </span>
+    );
+});
+
 // Memoized Status Select Component
-const StatusSelect = memo(({ orderId, status, options, onChange, getStatusColor }) => (
+const StatusSelect = memo(({ orderId, status, onChange }) => (
     <select
-        className={`status-select ${getStatusColor(status)}`}
+        className={`status-select status-${status}`}
         value={status}
         onChange={(e) => onChange(orderId, e.target.value)}
         onClick={(e) => e.stopPropagation()}
     >
-        {options.map(s => (
-            <option key={s} value={s}>{s}</option>
+        {STATUS_OPTIONS.map(s => (
+            <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>
         ))}
     </select>
 ));
 
 // Memoized Order Row Component
-const OrderRow = memo(({
-    order,
-    formatCurrency,
-    formatDate,
-    getStatusColor,
-    statusOptions,
-    onStatusChange,
-    onViewDetail
-}) => (
+const OrderRow = memo(({ order, onStatusChange, onViewDetail }) => (
     <tr className="order-row">
         <td className="order-id">{order.id.substring(0, 8)}...</td>
         <td>
-            <div>
-                <strong>{order.user?.name || 'N/A'}</strong>
-                <br />
-                <small style={{ color: 'var(--text-secondary)' }}>
-                    {order.user?.email || ''}
-                </small>
+            <div className="customer-info">
+                <span className="customer-name">{order.user?.name || 'N/A'}</span>
+                <span className="customer-email">{order.user?.email || ''}</span>
             </div>
         </td>
         <td>
-            <span className="order-items-preview">
+            <span className="order-items-badge">
                 {order.order_items?.length || 0} รายการ
             </span>
         </td>
-        <td className="amount">{formatCurrency(order.total_amount)}</td>
+        <td className="amount">{currencyFormatter.format(order.total_amount)}</td>
         <td>
             <StatusSelect
                 orderId={order.id}
                 status={order.status}
-                options={statusOptions}
                 onChange={onStatusChange}
-                getStatusColor={getStatusColor}
             />
         </td>
-        <td>{formatDate(order.created_at)}</td>
+        <td className="date-cell">{dateFormatter.format(new Date(order.created_at))}</td>
         <td>
             <button
-                className="btn-icon"
+                className="btn-view-detail"
                 onClick={() => onViewDetail(order)}
                 title="ดูรายละเอียด"
             >
-                👁️
+                👁️ ดู
             </button>
         </td>
     </tr>
 ));
 
-// Memoized Order Item Component
-const OrderItem = memo(({ item, formatCurrency }) => (
-    <div className="order-item">
-        <div className="item-info">
-            <span className="item-name">{item.product?.name || 'Unknown Product'}</span>
-            <span className="item-qty">x{item.quantity} @ {formatCurrency(item.price)}</span>
+// Memoized Order Item Component for Modal
+const OrderItemRow = memo(({ item }) => (
+    <div className="order-detail-item">
+        <div className="order-detail-item-image">
+            <img
+                src={item.product?.image_url || 'https://via.placeholder.com/60'}
+                alt={item.product?.name}
+                loading="lazy"
+            />
         </div>
-        <span className="item-price">
-            {formatCurrency(item.quantity * item.price)}
-        </span>
+        <div className="order-detail-item-info">
+            <span className="order-detail-item-name">{item.product?.name || 'Unknown Product'}</span>
+            <span className="order-detail-item-meta">
+                {currencyFormatter.format(item.price)} × {item.quantity}
+            </span>
+        </div>
+        <div className="order-detail-item-total">
+            {currencyFormatter.format(item.quantity * item.price)}
+        </div>
     </div>
 ));
 
-const STATUS_OPTIONS = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
+// Order Detail Modal Component
+const OrderDetailModal = memo(({ order, onClose }) => {
+    if (!order) return null;
+
+    const itemsTotal = order.order_items?.reduce((sum, item) => sum + (item.quantity * item.price), 0) || 0;
+
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="order-detail-modal" onClick={e => e.stopPropagation()}>
+                {/* Header */}
+                <div className="order-detail-header">
+                    <div className="order-detail-header-content">
+                        <span className="order-detail-icon">📋</span>
+                        <div>
+                            <h3>รายละเอียดคำสั่งซื้อ</h3>
+                            <span className="order-id-badge">#{order.id.substring(0, 8)}</span>
+                        </div>
+                    </div>
+                    <button className="modal-close-btn" onClick={onClose}>
+                        <span>✕</span>
+                    </button>
+                </div>
+
+                {/* Body */}
+                <div className="order-detail-body">
+                    {/* Status & Summary Card */}
+                    <div className="order-summary-card">
+                        <div className="order-summary-row">
+                            <span className="order-summary-label">สถานะ</span>
+                            <StatusBadge status={order.status} />
+                        </div>
+                        <div className="order-summary-row">
+                            <span className="order-summary-label">ยอดรวม</span>
+                            <span className="order-summary-total">{currencyFormatter.format(order.total_amount)}</span>
+                        </div>
+                        <div className="order-summary-row">
+                            <span className="order-summary-label">วันที่สั่งซื้อ</span>
+                            <span className="order-summary-value">{dateFormatter.format(new Date(order.created_at))}</span>
+                        </div>
+                    </div>
+
+                    {/* Customer Info */}
+                    <div className="order-info-section">
+                        <h4 className="order-info-title">
+                            <span>👤</span> ข้อมูลลูกค้า
+                        </h4>
+                        <div className="order-info-grid">
+                            <div className="order-info-item">
+                                <span className="order-info-label">ชื่อ</span>
+                                <span className="order-info-value">{order.user?.name || 'N/A'}</span>
+                            </div>
+                            <div className="order-info-item">
+                                <span className="order-info-label">อีเมล</span>
+                                <span className="order-info-value">{order.user?.email || 'N/A'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Shipping Address */}
+                    <div className="order-info-section">
+                        <h4 className="order-info-title">
+                            <span>📍</span> ที่อยู่จัดส่ง
+                        </h4>
+                        <p className="shipping-address-text">{order.shipping_address || '-'}</p>
+                    </div>
+
+                    {/* Order Items */}
+                    <div className="order-info-section">
+                        <h4 className="order-info-title">
+                            <span>🛒</span> รายการสินค้า
+                            <span className="items-count-badge">{order.order_items?.length || 0}</span>
+                        </h4>
+                        <div className="order-detail-items-list">
+                            {order.order_items?.map((item, index) => (
+                                <OrderItemRow key={index} item={item} />
+                            ))}
+                        </div>
+                        <div className="order-items-total">
+                            <span>รวม</span>
+                            <span>{currencyFormatter.format(itemsTotal)}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Footer */}
+                <div className="order-detail-footer">
+                    <button className="btn-close-modal" onClick={onClose}>
+                        ปิด
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+});
 
 const AdminOrders = () => {
     const [orders, setOrders] = useState([]);
@@ -86,25 +219,30 @@ const AdminOrders = () => {
     const [statusFilter, setStatusFilter] = useState('');
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [showDetailModal, setShowDetailModal] = useState(false);
-    const [updatingStatus, setUpdatingStatus] = useState(null);
 
     useEffect(() => {
-        fetchOrders();
-    }, []);
+        let mounted = true;
 
-    const fetchOrders = useCallback(async () => {
-        try {
-            const response = await api.get('/admin/orders');
-            setOrders(response.data.orders || []);
-        } catch (error) {
-            console.error('Failed to fetch orders:', error);
-        } finally {
-            setLoading(false);
-        }
+        const loadOrders = async () => {
+            try {
+                const response = await api.get('/admin/orders');
+                if (mounted) {
+                    setOrders(response.data.orders || []);
+                }
+            } catch (error) {
+                console.error('Failed to fetch orders:', error);
+            } finally {
+                if (mounted) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        loadOrders();
+        return () => { mounted = false; };
     }, []);
 
     const handleStatusChange = useCallback(async (orderId, newStatus) => {
-        setUpdatingStatus(orderId);
         try {
             await api.put(`/admin/orders/${orderId}/status`, { status: newStatus });
             setOrders(prev => prev.map(order =>
@@ -112,9 +250,6 @@ const AdminOrders = () => {
             ));
         } catch (error) {
             console.error('Failed to update order status:', error);
-            alert('เกิดข้อผิดพลาดในการอัพเดทสถานะ');
-        } finally {
-            setUpdatingStatus(null);
         }
     }, []);
 
@@ -127,34 +262,6 @@ const AdminOrders = () => {
         setShowDetailModal(false);
     }, []);
 
-    const formatCurrency = useCallback((amount) => {
-        return new Intl.NumberFormat('th-TH', {
-            style: 'currency',
-            currency: 'THB',
-        }).format(amount);
-    }, []);
-
-    const formatDate = useCallback((dateString) => {
-        return new Date(dateString).toLocaleDateString('th-TH', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        });
-    }, []);
-
-    const getStatusColor = useCallback((status) => {
-        const colors = {
-            pending: 'status-pending',
-            processing: 'status-processing',
-            shipped: 'status-shipped',
-            delivered: 'status-delivered',
-            cancelled: 'status-cancelled',
-        };
-        return colors[status] || '';
-    }, []);
-
     // Memoized filtered orders
     const filteredOrders = useMemo(() => {
         return orders.filter(order => !statusFilter || order.status === statusFilter);
@@ -163,7 +270,7 @@ const AdminOrders = () => {
     // Memoized status options for filter dropdown
     const statusFilterOptions = useMemo(() =>
         STATUS_OPTIONS.map(status => (
-            <option key={status} value={status}>{status}</option>
+            <option key={status} value={status}>{STATUS_CONFIG[status].label}</option>
         )), []);
 
     if (loading) {
@@ -211,10 +318,6 @@ const AdminOrders = () => {
                                 <OrderRow
                                     key={order.id}
                                     order={order}
-                                    formatCurrency={formatCurrency}
-                                    formatDate={formatDate}
-                                    getStatusColor={getStatusColor}
-                                    statusOptions={STATUS_OPTIONS}
                                     onStatusChange={handleStatusChange}
                                     onViewDetail={openDetailModal}
                                 />
@@ -228,72 +331,11 @@ const AdminOrders = () => {
             </div>
 
             {/* Order Detail Modal */}
-            {showDetailModal && selectedOrder && (
-                <div className="modal-overlay" onClick={closeDetailModal}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <h3>📋 รายละเอียดคำสั่งซื้อ</h3>
-                            <button className="modal-close" onClick={closeDetailModal}>×</button>
-                        </div>
-                        <div className="modal-body">
-                            <div className="order-detail">
-                                <div className="order-info">
-                                    <div className="info-item">
-                                        <span className="info-label">Order ID</span>
-                                        <span className="info-value" style={{ fontFamily: 'monospace', fontSize: '0.9em' }}>
-                                            {selectedOrder.id}
-                                        </span>
-                                    </div>
-                                    <div className="info-item">
-                                        <span className="info-label">สถานะ</span>
-                                        <span className={`status-badge ${getStatusColor(selectedOrder.status)}`}>
-                                            {selectedOrder.status}
-                                        </span>
-                                    </div>
-                                    <div className="info-item">
-                                        <span className="info-label">ลูกค้า</span>
-                                        <span className="info-value">{selectedOrder.user?.name || 'N/A'}</span>
-                                    </div>
-                                    <div className="info-item">
-                                        <span className="info-label">อีเมล</span>
-                                        <span className="info-value">{selectedOrder.user?.email || 'N/A'}</span>
-                                    </div>
-                                    <div className="info-item">
-                                        <span className="info-label">วันที่สั่งซื้อ</span>
-                                        <span className="info-value">{formatDate(selectedOrder.created_at)}</span>
-                                    </div>
-                                    <div className="info-item">
-                                        <span className="info-label">ยอดรวม</span>
-                                        <span className="info-value" style={{ color: 'var(--color-success)', fontWeight: 'bold' }}>
-                                            {formatCurrency(selectedOrder.total_amount)}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div className="info-item" style={{ marginBottom: 'var(--space-lg)' }}>
-                                    <span className="info-label">ที่อยู่จัดส่ง</span>
-                                    <span className="info-value">{selectedOrder.shipping_address}</span>
-                                </div>
-
-                                <div className="order-items-list">
-                                    <h4>🛍️ รายการสินค้า ({selectedOrder.order_items?.length || 0} รายการ)</h4>
-                                    {selectedOrder.order_items?.map((item, index) => (
-                                        <OrderItem
-                                            key={index}
-                                            item={item}
-                                            formatCurrency={formatCurrency}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                        <div className="modal-footer">
-                            <button className="btn btn-primary" onClick={closeDetailModal}>
-                                ปิด
-                            </button>
-                        </div>
-                    </div>
-                </div>
+            {showDetailModal && (
+                <OrderDetailModal
+                    order={selectedOrder}
+                    onClose={closeDetailModal}
+                />
             )}
         </div>
     );

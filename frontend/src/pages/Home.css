@@ -59,8 +59,7 @@
     position: absolute;
     font-size: 4rem;
     animation: bounce 3s ease-in-out infinite;
-    background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.9);
     padding: var(--space-xl);
     border-radius: var(--radius-2xl);
     box-shadow: var(--shadow-xl);

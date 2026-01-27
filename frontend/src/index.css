@@ -278,13 +278,11 @@ img {
 
 /* Cards with Glass Effect */
 .card {
-  background: var(--glass-bg);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: white;
   border-radius: var(--radius-2xl);
   padding: var(--space-xl);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow);
+  border: 1px solid var(--color-gray-200);
+  box-shadow: var(--shadow-md);
   transition: all var(--transition-base);
 }
 
@@ -323,8 +321,7 @@ img {
   border-radius: var(--radius-lg);
   transition: border-color var(--transition-fast);
   font-family: var(--font-family);
-  background: var(--glass-bg);
-  backdrop-filter: blur(10px);
+  background: white;
 }
 
 .form-input:focus,
@@ -431,8 +428,7 @@ img {
 }
 
 .error-message {
-  background: var(--glass-bg);
-  backdrop-filter: blur(10px);
+  background: hsl(0, 70%, 97%);
   color: var(--color-error);
   padding: var(--space-md);
   border-radius: var(--radius-lg);
