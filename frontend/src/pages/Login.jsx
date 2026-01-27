@@ -21,7 +21,13 @@ function Login() {
             const { token, user } = response.data;
 
             login(user, token);
-            navigate('/');
+
+            // Redirect admin to admin panel, regular users to home
+            if (user.role === 'admin') {
+                navigate('/admin');
+            } else {
+                navigate('/');
+            }
         } catch (err) {
             setError(err.response?.data?.error || 'เข้าสู่ระบบไม่สำเร็จ');
         } finally {
