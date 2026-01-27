@@ -8,9 +8,32 @@ import (
 	"pet-food-ecommerce/models"
 	"pet-food-ecommerce/routes"
 
+	_ "pet-food-ecommerce/docs"
+
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
+
+// @title Pet Food E-commerce API
+// @version 1.0
+// @description This is a Pet Food E-commerce API server with authentication, products, cart, and order management.
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name API Support
+// @contact.email support@petfood.com
+
+// @license.name MIT
+// @license.url https://opensource.org/licenses/MIT
+
+// @host localhost:8080
+// @BasePath /api
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and JWT token.
 
 func main() {
 	// Load environment variables
@@ -55,6 +78,9 @@ func main() {
 		c.Next()
 	})
 
+	// Swagger docs route
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
 	// Setup routes
 	routes.SetupRoutes(router)
 
@@ -66,6 +92,7 @@ func main() {
 
 	// Start server
 	fmt.Printf("Server starting on port %s...\n", port)
+	fmt.Printf("Swagger docs available at http://localhost:%s/swagger/index.html\n", port)
 	if err := router.Run(":" + port); err != nil {
 		log.Fatal("Failed to start server:", err)
 	}

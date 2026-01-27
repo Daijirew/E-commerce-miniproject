@@ -12,17 +12,19 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// RegisterRequest represents the request body for user registration
 type RegisterRequest struct {
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required,min=6"`
-	Name     string `json:"name" binding:"required"`
-	Phone    string `json:"phone"`
-	Address  string `json:"address"`
+	Email    string `json:"email" binding:"required,email" example:"user@example.com"`
+	Password string `json:"password" binding:"required,min=6" example:"password123"`
+	Name     string `json:"name" binding:"required" example:"John Doe"`
+	Phone    string `json:"phone" example:"0812345678"`
+	Address  string `json:"address" example:"123 Main St, Bangkok"`
 }
 
+// LoginRequest represents the request body for user login
 type LoginRequest struct {
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required"`
+	Email    string `json:"email" binding:"required,email" example:"user@example.com"`
+	Password string `json:"password" binding:"required" example:"password123"`
 }
 
 type Claims struct {
@@ -32,6 +34,25 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
+// UpdateProfileRequest represents the request body for updating user profile
+type UpdateProfileRequest struct {
+	Name    string `json:"name" example:"John Doe"`
+	Phone   string `json:"phone" example:"0812345678"`
+	Address string `json:"address" example:"456 New St, Bangkok"`
+}
+
+// Register godoc
+// @Summary Register a new user
+// @Description Create a new user account with email, password, and personal information
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body RegisterRequest true "Registration details"
+// @Success 201 {object} map[string]interface{} "User registered successfully"
+// @Failure 400 {object} map[string]interface{} "Bad request - validation error"
+// @Failure 409 {object} map[string]interface{} "Email already registered"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /auth/register [post]
 func Register(c *gin.Context) {
 	var req RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -78,6 +99,18 @@ func Register(c *gin.Context) {
 	})
 }
 
+// Login godoc
+// @Summary Login user
+// @Description Authenticate user with email and password, returns JWT token
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body LoginRequest true "Login credentials"
+// @Success 200 {object} map[string]interface{} "Login successful with JWT token"
+// @Failure 400 {object} map[string]interface{} "Bad request - validation error"
+// @Failure 401 {object} map[string]interface{} "Invalid email or password"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /auth/login [post]
 func Login(c *gin.Context) {
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -129,6 +162,16 @@ func Login(c *gin.Context) {
 	})
 }
 
+// GetProfile godoc
+// @Summary Get user profile
+// @Description Get the authenticated user's profile information
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{} "User profile"
+// @Failure 404 {object} map[string]interface{} "User not found"
+// @Router /profile [get]
 func GetProfile(c *gin.Context) {
 	userID := c.GetString("user_id")
 
@@ -150,6 +193,19 @@ func GetProfile(c *gin.Context) {
 	})
 }
 
+// UpdateProfile godoc
+// @Summary Update user profile
+// @Description Update the authenticated user's profile information
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body UpdateProfileRequest true "Profile update data"
+// @Success 200 {object} map[string]interface{} "Profile updated successfully"
+// @Failure 400 {object} map[string]interface{} "Bad request"
+// @Failure 404 {object} map[string]interface{} "User not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /profile [put]
 func UpdateProfile(c *gin.Context) {
 	userID := c.GetString("user_id")
 
@@ -159,11 +215,7 @@ func UpdateProfile(c *gin.Context) {
 		return
 	}
 
-	var updateData struct {
-		Name    string `json:"name"`
-		Phone   string `json:"phone"`
-		Address string `json:"address"`
-	}
+	var updateData UpdateProfileRequest
 
 	if err := c.ShouldBindJSON(&updateData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

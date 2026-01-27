@@ -9,6 +9,28 @@ import (
 	"github.com/google/uuid"
 )
 
+// AddToCartRequest represents the request body for adding an item to cart
+type AddToCartRequest struct {
+	ProductID string `json:"product_id" binding:"required" example:"aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"`
+	Quantity  int    `json:"quantity" binding:"required,min=1" example:"2"`
+}
+
+// UpdateCartRequest represents the request body for updating cart item quantity
+type UpdateCartRequest struct {
+	Quantity int `json:"quantity" binding:"required,min=1" example:"3"`
+}
+
+// GetCart godoc
+// @Summary Get user's cart
+// @Description Get all items in the authenticated user's shopping cart with total
+// @Tags Cart
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{} "Cart items and total"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /cart [get]
 func GetCart(c *gin.Context) {
 	userID := c.GetString("user_id")
 
@@ -30,13 +52,25 @@ func GetCart(c *gin.Context) {
 	})
 }
 
+// AddToCart godoc
+// @Summary Add item to cart
+// @Description Add a product to the authenticated user's shopping cart
+// @Tags Cart
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body AddToCartRequest true "Cart item data"
+// @Success 201 {object} map[string]interface{} "Item added to cart"
+// @Success 200 {object} map[string]interface{} "Cart updated (item already exists)"
+// @Failure 400 {object} map[string]interface{} "Bad request or insufficient stock"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 404 {object} map[string]interface{} "Product not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /cart [post]
 func AddToCart(c *gin.Context) {
 	userID := c.GetString("user_id")
 
-	var req struct {
-		ProductID string `json:"product_id" binding:"required"`
-		Quantity  int    `json:"quantity" binding:"required,min=1"`
-	}
+	var req AddToCartRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -98,6 +132,21 @@ func AddToCart(c *gin.Context) {
 	})
 }
 
+// UpdateCartItem godoc
+// @Summary Update cart item quantity
+// @Description Update the quantity of an item in the cart
+// @Tags Cart
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Cart item ID"
+// @Param request body UpdateCartRequest true "New quantity"
+// @Success 200 {object} map[string]interface{} "Cart updated successfully"
+// @Failure 400 {object} map[string]interface{} "Bad request or insufficient stock"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 404 {object} map[string]interface{} "Cart item not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /cart/{id} [put]
 func UpdateCartItem(c *gin.Context) {
 	userID := c.GetString("user_id")
 	cartID := c.Param("id")
@@ -108,9 +157,7 @@ func UpdateCartItem(c *gin.Context) {
 		return
 	}
 
-	var req struct {
-		Quantity int `json:"quantity" binding:"required,min=1"`
-	}
+	var req UpdateCartRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -143,6 +190,19 @@ func UpdateCartItem(c *gin.Context) {
 	})
 }
 
+// RemoveFromCart godoc
+// @Summary Remove item from cart
+// @Description Remove a specific item from the cart
+// @Tags Cart
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Cart item ID"
+// @Success 200 {object} map[string]interface{} "Item removed from cart"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 404 {object} map[string]interface{} "Cart item not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /cart/{id} [delete]
 func RemoveFromCart(c *gin.Context) {
 	userID := c.GetString("user_id")
 	cartID := c.Param("id")
@@ -161,6 +221,17 @@ func RemoveFromCart(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Removed from cart successfully"})
 }
 
+// ClearCart godoc
+// @Summary Clear entire cart
+// @Description Remove all items from the authenticated user's cart
+// @Tags Cart
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{} "Cart cleared successfully"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /cart [delete]
 func ClearCart(c *gin.Context) {
 	userID := c.GetString("user_id")
 
