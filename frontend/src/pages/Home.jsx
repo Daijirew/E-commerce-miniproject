@@ -99,12 +99,12 @@ function Home() {
             {/* Featured Products */}
             <section className="featured-section">
                 <div className="container">
-                    <div className="section-header">
+                    <div className="section-header featured-header">
                         <div>
                             <h2 className="section-title">สินค้าแนะนำ</h2>
                             <p className="section-subtitle">สินค้าคุณภาพที่ลูกค้าเลือกมากที่สุด</p>
                         </div>
-                        <Link to="/products" className="btn btn-outline">
+                        <Link to="/products" className="btn btn-translucent">
                             ดูทั้งหมด →
                         </Link>
                     </div>
