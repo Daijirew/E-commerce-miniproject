@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"net/http"
 	"os"
 	"pet-food-ecommerce/config"
@@ -39,6 +41,17 @@ type UpdateProfileRequest struct {
 	Name    string `json:"name" example:"John Doe"`
 	Phone   string `json:"phone" example:"0812345678"`
 	Address string `json:"address" example:"456 New St, Bangkok"`
+}
+
+// ForgotPasswordRequest represents the request body for requesting password reset
+type ForgotPasswordRequest struct {
+	Email string `json:"email" binding:"required,email" example:"user@example.com"`
+}
+
+// ResetPasswordRequest represents the request body for resetting password
+type ResetPasswordRequest struct {
+	Token    string `json:"token" binding:"required"`
+	Password string `json:"password" binding:"required,min=6" example:"newpassword123"`
 }
 
 // Register godoc
@@ -241,4 +254,100 @@ func UpdateProfile(c *gin.Context) {
 			"address": user.Address,
 		},
 	})
+}
+
+// RequestPasswordReset godoc
+// @Summary Request password reset
+// @Description Request a password reset token for the given email
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body ForgotPasswordRequest true "Email to reset password"
+// @Success 200 {object} map[string]interface{} "Reset token generated (simulated email)"
+// @Failure 404 {object} map[string]interface{} "User not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /auth/forgot-password [post]
+func RequestPasswordReset(c *gin.Context) {
+	var req ForgotPasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var user models.User
+	if err := config.GetDB().Where("email = ?", req.Email).First(&user).Error; err != nil {
+		// For security reasons, generally don't reveal if email exists, but for this project we'll return 404
+		c.JSON(http.StatusNotFound, gin.H{"error": "ไม่พบผู้ใช้งานที่ใช้อีเมลนี้"})
+		return
+	}
+
+	// Generate random token
+	bytes := make([]byte, 32)
+	if _, err := rand.Read(bytes); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		return
+	}
+	token := hex.EncodeToString(bytes)
+
+	// Set token and expiry (1 hour)
+	user.ResetToken = token
+	user.ResetTokenExpiry = time.Now().Add(1 * time.Hour)
+
+	if err := config.GetDB().Save(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save reset token"})
+		return
+	}
+
+	// In a real app, send email here.
+	// For this project, return token in response.
+	c.JSON(http.StatusOK, gin.H{
+		"message": "สร้างลิงก์สำหรับรีเซ็ตรหัสผ่านเรียบร้อยแล้ว",
+		"token":   token, // SIMULATED EMAIL
+		"note":    "In a real application, this token would be sent to the user's email.",
+	})
+}
+
+// ResetPassword godoc
+// @Summary Reset password
+// @Description Reset password using a valid token
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body ResetPasswordRequest true "Token and new password"
+// @Success 200 {object} map[string]interface{} "Password reset successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid or expired token"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /auth/reset-password [post]
+func ResetPassword(c *gin.Context) {
+	var req ResetPasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var user models.User
+	// Find user with matching token that hasn't expired
+	if err := config.GetDB().Where("reset_token = ? AND reset_token_expiry > ?", req.Token, time.Now()).First(&user).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ลิงก์รีเซ็ตรหัสผ่านไม่ถูกต้องหรือหมดอายุแล้ว"})
+		return
+	}
+
+	// Hash new password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+		return
+	}
+
+	// Update password and clear token
+	user.PasswordHash = string(hashedPassword)
+	user.ResetToken = ""
+	user.ResetTokenExpiry = time.Time{}
+
+	if err := config.GetDB().Save(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to reset password"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "รีเซ็ตรหัสผ่านสำเร็จ คุณสามารถเข้าสู่ระบบด้วยรหัสผ่านใหม่ได้แล้ว"})
 }

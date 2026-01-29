@@ -21,6 +21,8 @@ func SetupRoutes(router *gin.Engine) {
 		{
 			auth.POST("/register", controllers.Register)
 			auth.POST("/login", controllers.Login)
+			auth.POST("/forgot-password", controllers.RequestPasswordReset)
+			auth.POST("/reset-password", controllers.ResetPassword)
 		}
 
 		// Public product routes

@@ -3,28 +3,39 @@
     display: flex;
     min-height: 100vh;
     background: var(--bg-gradient);
+    position: relative;
+    overflow-x: hidden;
+    /* Prevent horizontal scroll */
 }
 
 /* Sidebar */
 .admin-sidebar {
     width: 260px;
-    background: rgba(255, 255, 255, 0.98);
-    border-right: 1px solid var(--color-gray-200);
+    background: rgba(255, 255, 255, 0.85);
+    /* Glass effect */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-right: 1px solid var(--glass-border);
     display: flex;
     flex-direction: column;
-    transition: width var(--transition-base);
+    transition: transform var(--transition-base), width var(--transition-base);
     position: fixed;
     height: 100vh;
     z-index: var(--z-fixed);
+    box-shadow: var(--shadow-lg);
 }
 
 .admin-sidebar.closed {
-    width: 70px;
+    width: 80px;
+    /* Slightly wider for better icon centering */
 }
 
 .admin-sidebar.closed .logo-text,
 .admin-sidebar.closed .nav-text {
-    display: none;
+    opacity: 0;
+    width: 0;
+    overflow: hidden;
+    white-space: nowrap;
 }
 
 .sidebar-header {
@@ -33,37 +44,50 @@
     align-items: center;
     justify-content: space-between;
     border-bottom: 1px solid var(--glass-border);
+    height: 80px;
+    /* Fixed height for consistency */
 }
 
 .sidebar-logo {
     display: flex;
     align-items: center;
     gap: var(--space-sm);
+    overflow: hidden;
+    /* Hide overflow when collapsed */
 }
 
 .logo-icon {
-    font-size: var(--font-size-2xl);
+    font-size: 2rem;
+    min-width: 40px;
+    /* Ensure icon doesn't shrink */
+    display: flex;
+    justify-content: center;
 }
 
 .logo-text {
     font-size: var(--font-size-lg);
     font-weight: var(--font-weight-bold);
     color: var(--color-primary);
+    transition: opacity var(--transition-fast);
 }
 
 .sidebar-toggle {
     background: transparent;
     border: none;
     cursor: pointer;
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-lg);
     color: var(--text-secondary);
     padding: var(--space-xs);
     border-radius: var(--radius-sm);
     transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .sidebar-toggle:hover {
-    background: var(--color-gray-200);
+    background: var(--color-pink-50);
+    color: var(--color-primary);
 }
 
 /* Navigation */
@@ -73,6 +97,8 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-xs);
+    overflow-y: auto;
+    /* Allow scroll if nav is long */
 }
 
 .nav-item {
@@ -91,23 +117,40 @@
     width: 100%;
     text-align: left;
     font-size: var(--font-size-base);
+    position: relative;
+    overflow: hidden;
 }
 
 .nav-item:hover {
-    background: var(--color-pink-100);
+    background: var(--color-pink-50);
     color: var(--color-primary);
+    transform: translateX(4px);
 }
 
 .nav-item.active {
-    background: var(--color-primary);
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
     color: var(--text-inverse);
     box-shadow: var(--shadow-md);
 }
 
+.nav-item.active:hover {
+    transform: none;
+    /* Don't move active item */
+}
+
 .nav-icon {
-    font-size: var(--font-size-xl);
-    width: 24px;
-    text-align: center;
+    font-size: 1.5rem;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.nav-text {
+    white-space: nowrap;
+    transition: opacity var(--transition-fast);
 }
 
 /* Sidebar Footer */
@@ -117,18 +160,18 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-xs);
+    background: rgba(255, 255, 255, 0.5);
+    /* Slightly darker footer */
 }
 
-.back-link {
+.back-link:hover {
     color: var(--color-info);
-}
-
-.logout-btn {
-    color: var(--color-error);
+    background: var(--color-cream-50);
 }
 
 .logout-btn:hover {
-    background: hsl(0, 60%, 95%);
+    color: var(--color-error);
+    background: hsl(0, 60%, 97%);
 }
 
 /* Main Content */
@@ -139,22 +182,40 @@
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    width: calc(100% - 260px);
+    /* Ensure correct width */
 }
 
 .admin-sidebar.closed+.admin-main {
-    margin-left: 70px;
+    margin-left: 80px;
+    width: calc(100% - 80px);
 }
 
 .admin-header {
-    background: rgba(255, 255, 255, 0.98);
-    padding: var(--space-lg) var(--space-xl);
-    border-bottom: 1px solid var(--color-gray-200);
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: var(--space-md) var(--space-xl);
+    border-bottom: 1px solid var(--glass-border);
     display: flex;
     align-items: center;
     justify-content: space-between;
     position: sticky;
     top: 0;
     z-index: var(--z-sticky);
+    box-shadow: var(--shadow-sm);
+    height: 80px;
+}
+
+.mobile-menu-toggle {
+    display: none;
+    /* Hidden on desktop */
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    margin-right: var(--space-md);
 }
 
 .admin-title {
@@ -168,41 +229,121 @@
     display: flex;
     align-items: center;
     gap: var(--space-sm);
-    padding: var(--space-sm) var(--space-md);
-    background: var(--color-pink-100);
+    padding: var(--space-xs) var(--space-lg);
+    background: var(--bg-secondary);
     border-radius: var(--radius-full);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow var(--transition-fast);
+}
+
+.admin-user:hover {
+    box-shadow: var(--shadow-md);
 }
 
 .user-avatar {
-    font-size: var(--font-size-lg);
+    font-size: 1.2rem;
+    background: var(--color-white);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .user-name {
     font-weight: var(--font-weight-medium);
     color: var(--text-primary);
+    font-size: var(--font-size-sm);
 }
 
 .admin-content {
     flex: 1;
     padding: var(--space-xl);
+    position: relative;
+    overflow-x: hidden;
+    /* Prevent content spill */
 }
 
-/* Responsive */
+/* Backdrop for mobile sidebar */
+.sidebar-backdrop {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    z-index: 1025;
+    /* Below sidebar (1030) but above everything else */
+    opacity: 0;
+    transition: opacity var(--transition-base);
+}
+
+.sidebar-backdrop.active {
+    opacity: 1;
+    pointer-events: auto;
+    /* catch clicks */
+}
+
+/* Responsive Styles */
 @media (max-width: 768px) {
     .admin-sidebar {
-        width: 70px;
+        transform: translateX(-100%);
+        /* Hide sidebar off-screen by default */
+        width: 260px !important;
+        /* Always full width when open on mobile */
     }
 
-    .admin-sidebar .logo-text,
-    .admin-sidebar .nav-text {
-        display: none;
+    .admin-sidebar.mobile-open {
+        transform: translateX(0);
+        box-shadow: var(--shadow-xl);
     }
 
-    .admin-main {
-        margin-left: 70px;
+    .sidebar-backdrop {
+        display: block;
+        /* Show backdrop element on mobile */
+        pointer-events: none;
+        /* but not clickable unless active */
     }
+
+    .admin-sidebar.closed {
+        width: 260px;
+        /* Reset closed state width for mobile animation logic if used */
+    }
+
+    /* On mobile, we don't use the 'closed' minified state in the same way. 
+       It's either Open (drawer) or Closed (hidden). */
 
     .sidebar-toggle {
         display: none;
+        /* Hide the collapse button inside sidebar */
+    }
+
+    .admin-main {
+        margin-left: 0 !important;
+        /* Content always takes full width */
+        width: 100% !important;
+    }
+
+    .mobile-menu-toggle {
+        display: block;
+        /* Show hamburger menu */
+    }
+
+    .admin-content {
+        padding: var(--space-md);
+        /* Less padding on mobile */
+    }
+
+    .admin-title {
+        font-size: var(--font-size-lg);
+    }
+
+    /* Adjust nav items for easier tapping */
+    .nav-item {
+        padding: var(--space-md);
     }
 }

@@ -7,6 +7,10 @@ const AdminLayout = () => {
     const { user, logout } = useAuthStore();
     const navigate = useNavigate();
     const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [mobileOpen, setMobileOpen] = useState(false);
+
+    // Close mobile sidebar on route change
+    const closeMobileSidebar = () => setMobileOpen(false);
 
     const handleLogout = () => {
         logout();
@@ -15,19 +19,28 @@ const AdminLayout = () => {
 
     return (
         <div className="admin-layout">
+            {/* Mobile Backdrop */}
+            <div
+                className={`sidebar-backdrop ${mobileOpen ? 'active' : ''}`}
+                onClick={() => setMobileOpen(false)}
+            />
+
             {/* Sidebar */}
-            <aside className={`admin-sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
+            <aside className={`admin-sidebar ${sidebarOpen ? 'open' : 'closed'} ${mobileOpen ? 'mobile-open' : ''}`}>
                 <div className="sidebar-header">
                     <div className="sidebar-logo">
                         <span className="logo-icon">🐾</span>
                         <span className="logo-text">Pet Admin</span>
                     </div>
+                    {/* Desktop Toggle */}
                     <button
                         className="sidebar-toggle"
                         onClick={() => setSidebarOpen(!sidebarOpen)}
+                        aria-label="Toggle Sidebar"
                     >
                         {sidebarOpen ? '◀' : '▶'}
                     </button>
+                    {/* Mobile Close Button (optional, relying on backdrop mainly) */}
                 </div>
 
                 <nav className="sidebar-nav">
@@ -35,6 +48,7 @@ const AdminLayout = () => {
                         to="/admin"
                         end
                         className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                        onClick={closeMobileSidebar}
                     >
                         <span className="nav-icon">📊</span>
                         <span className="nav-text">Dashboard</span>
@@ -42,6 +56,7 @@ const AdminLayout = () => {
                     <NavLink
                         to="/admin/products"
                         className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                        onClick={closeMobileSidebar}
                     >
                         <span className="nav-icon">📦</span>
                         <span className="nav-text">Products</span>
@@ -49,6 +64,7 @@ const AdminLayout = () => {
                     <NavLink
                         to="/admin/orders"
                         className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                        onClick={closeMobileSidebar}
                     >
                         <span className="nav-icon">🛒</span>
                         <span className="nav-text">Orders</span>
@@ -56,7 +72,7 @@ const AdminLayout = () => {
                 </nav>
 
                 <div className="sidebar-footer">
-                    <NavLink to="/" className="nav-item back-link">
+                    <NavLink to="/" className="nav-item back-link" onClick={closeMobileSidebar}>
                         <span className="nav-icon">🏠</span>
                         <span className="nav-text">Back to Shop</span>
                     </NavLink>
@@ -70,7 +86,16 @@ const AdminLayout = () => {
             {/* Main Content */}
             <main className="admin-main">
                 <header className="admin-header">
-                    <h1 className="admin-title">Admin Panel</h1>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <button
+                            className="mobile-menu-toggle"
+                            onClick={() => setMobileOpen(!mobileOpen)}
+                        >
+                            ☰
+                        </button>
+                        <h1 className="admin-title">Admin Panel</h1>
+                    </div>
+
                     <div className="admin-user">
                         <span className="user-avatar">👤</span>
                         <span className="user-name">{user?.name || 'Admin'}</span>

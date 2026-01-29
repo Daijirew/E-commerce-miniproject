@@ -75,6 +75,12 @@ function Login() {
                             />
                         </div>
 
+                        <div style={{ textAlign: 'right', marginBottom: '1.5rem', marginTop: '-0.5rem' }}>
+                            <Link to="/forgot-password" style={{ color: 'var(--primary)', fontSize: '0.9rem', textDecoration: 'none' }}>
+                                ลืมรหัสผ่าน?
+                            </Link>
+                        </div>
+
                         <button
                             type="submit"
                             className="btn btn-primary btn-block"
