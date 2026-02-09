@@ -9,10 +9,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # 1. เช็กโค้ด
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      # แทรกส่วนนี้ลงไปก่อน Login
+      - name: Check Secret Availability
+        run: |
+          if [ -z "${{ secrets.DOCKER_PASSWORD }}" ]; then
+            echo "::error::CRITICAL ERROR: Secret is EMPTY! (หากุญแจไม่เจอ)"
+            exit 1
+          else
+            echo "SUCCESS: Secret detected (พบกุญแจแล้ว ความยาว ${#DOCKER_TOKEN} ตัวอักษร)"
+          fi
+        env:
+          DOCKER_TOKEN: ${{ secrets.DOCKER_PASSWORD }}
 
-      # 2. ล็อกอิน (พิมพ์ใหม่ให้ชัวร์)
+      # ส่วน Login เดิมของคุณ
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
