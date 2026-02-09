@@ -8,9 +8,20 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      # 1. เช็กโค้ด
-      # แทรกส่วนนี้ลงไปก่อน Login
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # --- เพิ่มท่อนนี้เข้าไปครับ (Spy Step) ---
+      - name: 🕵️ Check Files (Debug)
+        run: |
+          echo "=== List of all files ==="
+          ls -la
+          echo "--- Inside backend folder? ---"
+          ls -R
+      # --------------------------------------
+
       - name: Check Secret Availability
+        # ... (โค้ดเดิมของคุณต่อจากตรงนี้)
         run: |
           if [ -z "${{ secrets.DOCKER_PASSWORD }}" ]; then
             echo "::error::CRITICAL ERROR: Secret is EMPTY! (หากุญแจไม่เจอ)"
