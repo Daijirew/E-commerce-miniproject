@@ -2,12 +2,9 @@ name: Deploy to OpenLandscape
 
 on:
   push:
-    branches: [ "main" ]  # ทำงานเมื่อ Push เข้า branch main
+    branches: [ "main" ]
 
 jobs:
-  # ---------------------------------------------------
-  # งานที่ 1: สร้าง Image และส่งไป Docker Hub
-  # ---------------------------------------------------
   build-and-push:
     runs-on: ubuntu-latest
     steps:
@@ -20,7 +17,6 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Build & Push Backend
       - name: Build and push Backend
         uses: docker/build-push-action@v5
         with:
@@ -28,7 +24,6 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/ecommerce-backend:latest
 
-      # Build & Push Frontend
       - name: Build and push Frontend
         uses: docker/build-push-action@v5
         with:
@@ -36,11 +31,8 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/ecommerce-frontend:latest
 
-  # ---------------------------------------------------
-  # งานที่ 2: สั่ง Server ให้ดึงของใหม่มาลง
-  # ---------------------------------------------------
   deploy:
-    needs: build-and-push # รอให้สร้าง Image เสร็จก่อน
+    needs: build-and-push
     runs-on: ubuntu-latest
     steps:
       - name: SSH and Deploy
@@ -50,14 +42,7 @@ jobs:
           username: ${{ secrets.OLS_USERNAME }}
           key: ${{ secrets.OLS_SSH_KEY }}
           script: |
-            # เข้าไปที่โฟลเดอร์โปรเจค
             cd /root/myapp
-
-            # ดึง Image ล่าสุดจาก Docker Hub
             docker compose pull
-
-            # เริ่มต้นใหม่ (Update Container)
             docker compose up -d --remove-orphans
-            
-            # ลบ Image เก่าทิ้งเพื่อประหยัดพื้นที่
             docker image prune -f
