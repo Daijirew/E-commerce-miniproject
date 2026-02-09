@@ -1,0 +1,23 @@
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+
+# Test and development files
+test.db
+*.exe
+*.bak
+*.log
+
+# Environment files (use Docker environment variables instead)
+.env
+
+# Documentation (keep docs/ for Swagger)
+README.md
+
+# Compiled files
+*.o
+*.a

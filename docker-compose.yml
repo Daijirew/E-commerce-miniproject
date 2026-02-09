@@ -1,0 +1,54 @@
+services:
+  # Backend Service (Golang)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ecommerce-backend
+    ports:
+      - "${PORT}:${PORT}" # ใช้ Port 8080 ตามที่ตั้งไว้
+    environment:
+      - GIN_MODE=release
+      # ส่งค่า Environment Variables เข้าไปใน Container
+      - PORT=${PORT}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_KEY}
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+    # สั่งให้ Docker อ่านไฟล์ .env ที่เราเพิ่งสร้าง
+    env_file:
+      - .env
+    networks:
+      - ecommerce-network
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:${PORT}/api/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Frontend Service (React + Nginx)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ecommerce-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - ecommerce-network
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+networks:
+  ecommerce-network:
+    driver: bridge
