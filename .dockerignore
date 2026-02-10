@@ -22,6 +22,7 @@ backend/.env
 # Frontend specific
 frontend/node_modules
 frontend/.env
+!frontend/.env.production  <-- บรรทัดนี้สำคัญ! สั่งให้ "ยกเว้น" (เอาไฟล์นี้เข้าไปได้)
 frontend/dist
 
 # Docker
