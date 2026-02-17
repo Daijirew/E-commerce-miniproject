@@ -11,14 +11,11 @@
 /* Sidebar */
 .admin-sidebar {
     width: 260px;
-    background: rgba(255, 255, 255, 0.85);
-    /* Glass effect */
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.97);
     border-right: 1px solid var(--glass-border);
     display: flex;
     flex-direction: column;
-    transition: transform var(--transition-base), width var(--transition-base);
+    transition: transform 0.2s ease, width 0.2s ease;
     position: fixed;
     height: 100vh;
     z-index: var(--z-fixed);
@@ -109,7 +106,7 @@
     border-radius: var(--radius-lg);
     color: var(--text-secondary);
     text-decoration: none;
-    transition: all var(--transition-fast);
+    transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
     font-weight: var(--font-weight-medium);
     cursor: pointer;
     border: none;
@@ -192,9 +189,7 @@
 }
 
 .admin-header {
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.97);
     padding: var(--space-md) var(--space-xl);
     border-bottom: 1px solid var(--glass-border);
     display: flex;
@@ -275,11 +270,10 @@
     width: 100vw;
     height: 100vh;
     background: rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(4px);
     z-index: 1025;
     /* Below sidebar (1030) but above everything else */
     opacity: 0;
-    transition: opacity var(--transition-base);
+    transition: opacity 0.2s ease;
 }
 
 .sidebar-backdrop.active {

@@ -2,6 +2,20 @@ import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import api from '../../services/api';
 import './Admin.css';
 
+// Currency & Date formatters - created once outside component
+const currencyFormatter = new Intl.NumberFormat('th-TH', {
+    style: 'currency',
+    currency: 'THB',
+});
+
+const dateFormatter = new Intl.DateTimeFormat('th-TH', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+});
+
 // Memoized Stat Card Component
 const StatCard = memo(({ icon, value, label, variant }) => (
     <div className={`stat-card ${variant}`}>
@@ -34,13 +48,13 @@ const StatusBadge = memo(({ status }) => {
 });
 
 // Memoized Order Row Component
-const OrderRow = memo(({ order, formatCurrency, formatDate }) => (
+const OrderRow = memo(({ order }) => (
     <tr>
         <td className="order-id">{order.id.substring(0, 8)}...</td>
         <td>{order.user?.name || order.user?.email || 'N/A'}</td>
-        <td className="amount">{formatCurrency(order.total_amount)}</td>
+        <td className="amount">{currencyFormatter.format(order.total_amount)}</td>
         <td><StatusBadge status={order.status} /></td>
-        <td>{formatDate(order.created_at)}</td>
+        <td>{dateFormatter.format(new Date(order.created_at))}</td>
     </tr>
 ));
 
@@ -75,25 +89,6 @@ const AdminDashboard = () => {
         cancelledOrders: orders.filter(o => o.status === 'cancelled').length,
     }), [orders]);
 
-    // Memoized currency formatter
-    const formatCurrency = useCallback((amount) => {
-        return new Intl.NumberFormat('th-TH', {
-            style: 'currency',
-            currency: 'THB',
-        }).format(amount);
-    }, []);
-
-    // Memoized date formatter
-    const formatDate = useCallback((dateString) => {
-        return new Date(dateString).toLocaleDateString('th-TH', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        });
-    }, []);
-
     // Memoized recent orders (top 10)
     const recentOrders = useMemo(() => orders.slice(0, 10), [orders]);
 
@@ -127,7 +122,7 @@ const AdminDashboard = () => {
                 />
                 <StatCard
                     icon="💰"
-                    value={formatCurrency(stats.totalRevenue)}
+                    value={currencyFormatter.format(stats.totalRevenue)}
                     label="รายได้รวม"
                     variant="success"
                 />
@@ -177,8 +172,6 @@ const AdminDashboard = () => {
                                 <OrderRow
                                     key={order.id}
                                     order={order}
-                                    formatCurrency={formatCurrency}
-                                    formatDate={formatDate}
                                 />
                             ))}
                         </tbody>

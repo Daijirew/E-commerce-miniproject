@@ -63,28 +63,28 @@ const StatusSelect = memo(({ orderId, status, onChange }) => (
 // Memoized Order Row Component
 const OrderRow = memo(({ order, onStatusChange, onViewDetail }) => (
     <tr className="order-row">
-        <td className="order-id">{order.id.substring(0, 8)}...</td>
-        <td>
+        <td className="order-id" data-label="Order ID">{order.id.substring(0, 8)}...</td>
+        <td data-label="ลูกค้า">
             <div className="customer-info">
                 <span className="customer-name">{order.user?.name || 'N/A'}</span>
                 <span className="customer-email">{order.user?.email || ''}</span>
             </div>
         </td>
-        <td>
+        <td data-label="รายการ">
             <span className="order-items-badge">
                 {order.order_items?.length || 0} รายการ
             </span>
         </td>
-        <td className="amount">{currencyFormatter.format(order.total_amount)}</td>
-        <td>
+        <td className="amount" data-label="ยอดรวม">{currencyFormatter.format(order.total_amount)}</td>
+        <td data-label="สถานะ">
             <StatusSelect
                 orderId={order.id}
                 status={order.status}
                 onChange={onStatusChange}
             />
         </td>
-        <td className="date-cell">{dateFormatter.format(new Date(order.created_at))}</td>
-        <td>
+        <td className="date-cell" data-label="วันที่">{dateFormatter.format(new Date(order.created_at))}</td>
+        <td data-label="">
             <button
                 className="btn-view-detail"
                 onClick={() => onViewDetail(order)}
@@ -219,6 +219,8 @@ const AdminOrders = () => {
     const [statusFilter, setStatusFilter] = useState('');
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [showDetailModal, setShowDetailModal] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const PAGE_SIZE = 20;
 
     useEffect(() => {
         let mounted = true;
@@ -267,6 +269,18 @@ const AdminOrders = () => {
         return orders.filter(order => !statusFilter || order.status === statusFilter);
     }, [orders, statusFilter]);
 
+    // Reset page when filter changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [statusFilter]);
+
+    // Pagination
+    const totalPages = Math.max(1, Math.ceil(filteredOrders.length / PAGE_SIZE));
+    const paginatedOrders = useMemo(() => {
+        const start = (currentPage - 1) * PAGE_SIZE;
+        return filteredOrders.slice(start, start + PAGE_SIZE);
+    }, [filteredOrders, currentPage]);
+
     // Memoized status options for filter dropdown
     const statusFilterOptions = useMemo(() =>
         STATUS_OPTIONS.map(status => (
@@ -294,7 +308,7 @@ const AdminOrders = () => {
                     {statusFilterOptions}
                 </select>
                 <span className="orders-count">
-                    แสดง {filteredOrders.length} จาก {orders.length} รายการ
+                    แสดง {paginatedOrders.length} จาก {filteredOrders.length} รายการ (หน้า {currentPage}/{totalPages})
                 </span>
             </div>
 
@@ -314,7 +328,7 @@ const AdminOrders = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredOrders.map((order) => (
+                            {paginatedOrders.map((order) => (
                                 <OrderRow
                                     key={order.id}
                                     order={order}
@@ -328,6 +342,41 @@ const AdminOrders = () => {
                         <div className="empty-state">ไม่พบคำสั่งซื้อ</div>
                     )}
                 </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                    <div className="pagination">
+                        <button
+                            disabled={currentPage === 1}
+                            onClick={() => setCurrentPage(p => p - 1)}
+                        >
+                            ◀ ก่อนหน้า
+                        </button>
+                        {Array.from({ length: totalPages }, (_, i) => i + 1)
+                            .filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 2)
+                            .map((p, idx, arr) => (
+                                <React.Fragment key={p}>
+                                    {idx > 0 && arr[idx - 1] < p - 1 && (
+                                        <span style={{ padding: '0 4px', color: 'var(--text-secondary)' }}>...</span>
+                                    )}
+                                    <button
+                                        className={currentPage === p ? 'active' : ''}
+                                        onClick={() => setCurrentPage(p)}
+                                        style={currentPage === p ? { background: 'var(--color-primary)', color: 'white', borderColor: 'var(--color-primary)' } : {}}
+                                    >
+                                        {p}
+                                    </button>
+                                </React.Fragment>
+                            ))
+                        }
+                        <button
+                            disabled={currentPage === totalPages}
+                            onClick={() => setCurrentPage(p => p + 1)}
+                        >
+                            ถัดไป ▶
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* Order Detail Modal */}
