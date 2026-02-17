@@ -53,7 +53,7 @@ func main() {
 	if result.Error == nil {
 		// User exists, update role to admin
 		db.Model(&existingUser).Update("role", "admin")
-		fmt.Println("✅ Updated existing user to admin role")
+		fmt.Println("✅ Updated existing user to admin roles")
 		fmt.Println("   Email: admin@admin.com")
 		return
 	}
