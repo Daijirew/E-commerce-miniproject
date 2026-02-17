@@ -168,6 +168,8 @@ function Cart() {
                                 <span className="summary-value">
                                     {total >= 1000 ? (
                                         <span className="free-shipping">ฟรี! 🎉</span>
+                                    ) : total >= 500 ? (
+                                        '฿25'
                                     ) : (
                                         '฿50'
                                     )}
