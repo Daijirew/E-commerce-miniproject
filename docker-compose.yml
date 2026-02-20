@@ -15,7 +15,7 @@ services:
       - SUPABASE_KEY=${SUPABASE_KEY}
       - DATABASE_URL=${DATABASE_URL}
       - JWT_SECRET=${JWT_SECRET}
-    # สั่งให้ Docker อ่านไฟล์ .env ที่เราเพิ่งสร้าง
+    # สั่งให้ Docker อ่านไฟล์ .env 
     env_file:
       - .env
     networks:

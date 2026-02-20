@@ -146,6 +146,8 @@ const AdminProducts = () => {
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [saving, setSaving] = useState(false);
     const [formData, setFormData] = useState(INITIAL_FORM_STATE);
+    const [currentPage, setCurrentPage] = useState(1);
+    const PAGE_SIZE = 12;
 
     // Debounce search using ref
     const searchTimeoutRef = useRef(null);
@@ -295,6 +297,18 @@ const AdminProducts = () => {
         });
     }, [products, debouncedSearch, categoryFilter]);
 
+    // Reset page when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [debouncedSearch, categoryFilter]);
+
+    // Pagination
+    const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PAGE_SIZE));
+    const paginatedProducts = useMemo(() => {
+        const start = (currentPage - 1) * PAGE_SIZE;
+        return filteredProducts.slice(start, start + PAGE_SIZE);
+    }, [filteredProducts, currentPage]);
+
     // Memoized category options
     const categoryOptions = useMemo(() =>
         categories.map(cat => (
@@ -334,16 +348,51 @@ const AdminProducts = () => {
                     {categoryOptions}
                 </select>
                 <span className="products-count">
-                    {filteredProducts.length} รายการ
+                    {paginatedProducts.length} / {filteredProducts.length} รายการ (หน้า {currentPage}/{totalPages})
                 </span>
             </div>
 
             {/* Products Grid */}
             <ProductsGrid
-                products={filteredProducts}
+                products={paginatedProducts}
                 onEdit={openEditModal}
                 onDelete={openDeleteConfirm}
             />
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+                <div className="pagination">
+                    <button
+                        disabled={currentPage === 1}
+                        onClick={() => setCurrentPage(p => p - 1)}
+                    >
+                        ◀ ก่อนหน้า
+                    </button>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                        .filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 2)
+                        .map((p, idx, arr) => (
+                            <React.Fragment key={p}>
+                                {idx > 0 && arr[idx - 1] < p - 1 && (
+                                    <span style={{ padding: '0 4px', color: 'var(--text-secondary)' }}>...</span>
+                                )}
+                                <button
+                                    className={currentPage === p ? 'active' : ''}
+                                    onClick={() => setCurrentPage(p)}
+                                    style={currentPage === p ? { background: 'var(--color-primary)', color: 'white', borderColor: 'var(--color-primary)' } : {}}
+                                >
+                                    {p}
+                                </button>
+                            </React.Fragment>
+                        ))
+                    }
+                    <button
+                        disabled={currentPage === totalPages}
+                        onClick={() => setCurrentPage(p => p + 1)}
+                    >
+                        ถัดไป ▶
+                    </button>
+                </div>
+            )}
 
             {/* Enhanced Product Modal */}
             {showModal && (

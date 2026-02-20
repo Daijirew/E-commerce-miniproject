@@ -1,253 +1,440 @@
-# Pet Food E-commerce Platform
+# 🐾 Pet Food E-commerce Platform
 
-โปรเจค E-commerce สำหรับขายอาหารสัตว์เลี้ยง สร้างด้วย React (Frontend), Golang (Backend), และ Supabase (Database)
+โปรเจค E-commerce สำหรับขายอาหารสัตว์เลี้ยง สร้างด้วย React (Frontend), Golang (Backend), และ Supabase (Database)  
+รองรับ Docker Deployment พร้อม Swagger API Documentation
+
+---
 
 ## 🚀 Technology Stack
 
-### Frontend
-- **React** - UI Framework
-- **Vite** - Build Tool & Dev Server
-- **React Router** - Routing
-- **Zustand** - State Management
-- **Axios** - HTTP Client
-- **CSS** - Styling (Design System)
+| Layer | Technology | Description |
+|-------|-----------|-------------|
+| **Frontend** | React 19 | UI Framework |
+| | Vite 7 | Build Tool & Dev Server |
+| | React Router 7 | Client-side Routing |
+| | Zustand 5 | State Management |
+| | Axios | HTTP Client |
+| | Vanilla CSS | Design System & Styling |
+| **Backend** | Golang | Programming Language |
+| | Gin | Web Framework |
+| | GORM | ORM |
+| | Swagger (swaggo) | API Documentation |
+| | JWT | Authentication |
+| | bcrypt | Password Hashing |
+| **Database** | PostgreSQL (Supabase) | Database as a Service |
+| **DevOps** | Docker & Docker Compose | Containerization |
+| | Nginx | Frontend Production Server |
+| | GitHub Actions | CI/CD Pipeline |
 
-### Backend
-- **Golang** - Programming Language
-- **Gin** - Web Framework
-- **GORM** - ORM
-- **PostgreSQL** (Supabase) - Database
-- **JWT** - Authentication
-- **bcrypt** - Password Hashing
-
-### Database
-- **Supabase** - PostgreSQL Database as a Service
+---
 
 ## 📁 Project Structure
 
 ```
-E-commerce Practice Project/
-├── backend/
-│   ├── config/         # Database configuration
-│   ├── controllers/    # API controllers
-│   ├── middleware/     # Authentication middleware
-│   ├── models/         # Database models
-│   ├── routes/         # API routes
-│   ├── main.go         # Entry point
-│   ├── go.mod          # Dependencies
-│   └── .env.example    # Environment variables template
+E-commerce-miniproject/
+├── .github/
+│   └── workflows/         # CI/CD pipeline (GitHub Actions)
 │
-└── frontend/
-    ├── src/
-    │   ├── components/     # Reusable components
-    │   ├── pages/          # Page components
-    │   ├── services/       # API services
-    │   ├── store/          # Zustand stores
-    │   ├── App.jsx         # Main app component
-    │   ├── main.jsx        # Entry point
-    │   └── index.css       # Global styles & design system
-    ├── public/
-    ├── index.html
-    ├── package.json
-    └── .env                # Environment variables
+├── backend/
+│   ├── config/            # Database configuration
+│   ├── controllers/       # API controllers (auth, cart, category, order, product)
+│   ├── docs/              # Swagger API documentation (auto-generated)
+│   ├── middleware/        # Authentication & Admin middleware
+│   ├── models/            # Database models (user, product, category, cart, order)
+│   ├── routes/            # API route definitions
+│   ├── main.go            # Entry point
+│   ├── Dockerfile         # Multi-stage Docker build
+│   ├── seed.sql           # Database seed data
+│   ├── seed_admin.go      # Admin user seeder
+│   ├── go.mod             # Go dependencies
+│   └── .env.example       # Environment variables template
+│
+├── frontend/
+│   ├── src/
+│   │   ├── components/    # Reusable UI components
+│   │   │   ├── Header        # Navigation bar
+│   │   │   ├── Footer        # Site footer
+│   │   │   ├── ProductCard   # Product display card
+│   │   │   ├── AdminLayout   # Admin panel layout
+│   │   │   ├── Modal         # Global modal system
+│   │   │   ├── Toast         # Toast notification system
+│   │   │   ├── ProtectedRoute        # Auth guard
+│   │   │   └── AdminProtectedRoute   # Admin auth guard
+│   │   ├── pages/
+│   │   │   ├── Home          # Landing page
+│   │   │   ├── Products      # Product listing with filters
+│   │   │   ├── Cart          # Shopping cart
+│   │   │   ├── Checkout      # Order checkout
+│   │   │   ├── MyOrders      # Order history & tracking
+│   │   │   ├── Login         # User login
+│   │   │   ├── Register      # User registration
+│   │   │   ├── ForgotPassword / ResetPassword  # Password recovery
+│   │   │   └── admin/
+│   │   │       ├── AdminDashboard   # Admin overview
+│   │   │       ├── AdminProducts    # Product management
+│   │   │       └── AdminOrders      # Order management
+│   │   ├── services/      # API service layer (Axios)
+│   │   ├── store/         # Zustand state stores
+│   │   │   ├── useAuthStore     # Authentication state
+│   │   │   ├── useCartStore     # Cart state
+│   │   │   ├── useModalStore    # Modal state
+│   │   │   └── useToastStore    # Toast notifications state
+│   │   ├── App.jsx        # Main app with routing
+│   │   ├── main.jsx       # Entry point
+│   │   └── index.css      # Global styles & design system
+│   ├── Dockerfile         # Multi-stage build (Node + Nginx)
+│   ├── nginx.conf         # Nginx configuration
+│   └── package.json       # Node dependencies
+│
+├── docker-compose.yml     # Docker orchestration
+├── .dockerignore          # Docker ignore rules
+└── .env                   # Root environment variables
+```
+
+---
 
 ## 🛠️ Setup Instructions
 
 ### Prerequisites
-- Node.js (v18+)
-- Go (v1.21+)
-- Supabase Account
 
-### Backend Setup
+- **Node.js** v18+
+- **Go** v1.21+
+- **Supabase** Account (for PostgreSQL database)
+- **Docker** & **Docker Compose** (optional, for containerized deployment)
 
-1. Navigate to backend directory:
+---
+
+### 🖥️ Local Development
+
+#### Backend Setup
+
 ```bash
 cd backend
-```
 
-2. Copy environment variables:
-```bash
+# Copy environment variables
 copy .env.example .env
 ```
 
-3. Configure `.env` file with your Supabase credentials:
+Configure `.env` with your Supabase credentials:
+
 ```env
 DATABASE_URL=postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres
 JWT_SECRET=your_secret_key_here
 PORT=8080
 ```
 
-4. Install dependencies:
 ```bash
+# Install dependencies
 go mod download
-```
 
-5. Run the server:
-```bash
+# Run the server
 go run main.go
 ```
 
-Backend will start on `http://localhost:8080`
+> Backend จะเริ่มทำงานที่ `http://localhost:8080`  
+> Swagger Docs จะอยู่ที่ `http://localhost:8080/swagger/index.html`
 
-### Frontend Setup
+#### Frontend Setup
 
-1. Navigate to frontend directory:
 ```bash
 cd frontend
-```
 
-2. Install dependencies:
-```bash
+# Install dependencies
 npm install
 ```
 
-3. Configure `.env` file (should already exist):
+Configure `.env`:
+
 ```env
 VITE_API_URL=http://localhost:8080/api
 ```
 
-4. Run the development server:
 ```bash
+# Run the development server
 npm run dev
 ```
 
-Frontend will start on `http://localhost:5173`
+> Frontend จะเริ่มทำงานที่ `http://localhost:5173`
+
+---
+
+### 🐳 Docker Deployment
+
+สำหรับการ Deploy แบบ Container ด้วย Docker Compose:
+
+1. สร้างไฟล์ `.env` ที่ root ของโปรเจค:
+
+```env
+PORT=8080
+DATABASE_URL=postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres
+JWT_SECRET=your_secret_key_here
+SUPABASE_URL=https://[PROJECT-REF].supabase.co
+SUPABASE_KEY=your_supabase_key
+```
+
+2. Build และรันด้วย Docker Compose:
+
+```bash
+docker compose up -d --build
+```
+
+3. ตรวจสอบสถานะ:
+
+```bash
+docker compose ps
+```
+
+| Service | Port | Description |
+|---------|------|-------------|
+| `ecommerce-backend` | `8080` | Golang API Server |
+| `ecommerce-frontend` | `80` | React App (Nginx) |
+
+ทั้งสอง services มี **health check** ในตัว และ frontend จะรอจนกว่า backend จะพร้อมก่อนเริ่มทำงาน
+
+---
 
 ## 📊 Database Schema
 
-### Tables
+```mermaid
+erDiagram
+    users ||--o{ carts : has
+    users ||--o{ orders : places
+    categories ||--o{ products : contains
+    products ||--o{ carts : "added to"
+    products ||--o{ order_items : "included in"
+    orders ||--|{ order_items : contains
 
-**users**
-- id (UUID, primary key)
-- email (TEXT, unique)
-- password_hash (TEXT)
-- name (TEXT)
-- phone (TEXT)
-- address (TEXT)
-- role (TEXT) - 'customer' or 'admin'
-- created_at, updated_at (TIMESTAMP)
+    users {
+        UUID id PK
+        TEXT email UK
+        TEXT password_hash
+        TEXT name
+        TEXT phone
+        TEXT address
+        TEXT role "customer | admin"
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+    }
 
-**categories**
-- id (UUID, primary key)
-- name (TEXT)
-- description (TEXT)
-- image_url (TEXT)
-- created_at (TIMESTAMP)
+    categories {
+        UUID id PK
+        TEXT name
+        TEXT description
+        TEXT image_url
+        TIMESTAMP created_at
+    }
 
-**products**
-- id (UUID, primary key)
-- name (TEXT)
-- description (TEXT)
-- price (DECIMAL)
-- stock (INTEGER)
-- category_id (UUID, FK)
-- image_url (TEXT)
-- brand (TEXT)
-- weight (TEXT)
-- created_at, updated_at (TIMESTAMP)
+    products {
+        UUID id PK
+        TEXT name
+        TEXT description
+        DECIMAL price
+        INTEGER stock
+        UUID category_id FK
+        TEXT image_url
+        TEXT brand
+        TEXT weight
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+    }
 
-**carts**
-- id (UUID, primary key)
-- user_id (UUID, FK)
-- product_id (UUID, FK)
-- quantity (INTEGER)
-- created_at (TIMESTAMP)
+    carts {
+        UUID id PK
+        UUID user_id FK
+        UUID product_id FK
+        INTEGER quantity
+        TIMESTAMP created_at
+    }
 
-**orders**
-- id (UUID, primary key)
-- user_id (UUID, FK)
-- total_amount (DECIMAL)
-- status (TEXT) - 'pending', 'processing', 'shipped', 'delivered', 'cancelled'
-- shipping_address (TEXT)
-- created_at, updated_at (TIMESTAMP)
+    orders {
+        UUID id PK
+        UUID user_id FK
+        DECIMAL total_amount
+        TEXT status "pending | processing | shipped | delivered | cancelled"
+        TEXT shipping_address
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+    }
 
-**order_items**
-- id (UUID, primary key)
-- order_id (UUID, FK)
-- product_id (UUID, FK)
-- quantity (INTEGER)
-- price (DECIMAL)
+    order_items {
+        UUID id PK
+        UUID order_id FK
+        UUID product_id FK
+        INTEGER quantity
+        DECIMAL price
+    }
+```
+
+---
 
 ## 🔌 API Endpoints
 
+> 📖 API Documentation แบบ interactive อยู่ที่ `/swagger/index.html`
+
 ### Authentication
-- `POST /api/auth/register` - Register new user
-- `POST /api/auth/login` - Login user
-- `GET /api/profile` - Get user profile (protected)
-- `PUT /api/profile` - Update user profile (protected)
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| `POST` | `/api/auth/register` | สมัครสมาชิกใหม่ | ❌ |
+| `POST` | `/api/auth/login` | เข้าสู่ระบบ | ❌ |
+| `POST` | `/api/auth/forgot-password` | ขอรีเซ็ตรหัสผ่าน | ❌ |
+| `POST` | `/api/auth/reset-password` | รีเซ็ตรหัสผ่าน | ❌ |
+| `GET` | `/api/profile` | ดูข้อมูลโปรไฟล์ | ✅ |
+| `PUT` | `/api/profile` | แก้ไขข้อมูลโปรไฟล์ | ✅ |
 
 ### Products
-- `GET /api/products` - Get all products (with pagination & filters)
-- `GET /api/products/:id` - Get product by ID
-- `GET /api/products/category/:categoryId` - Get products by category
-- `POST /api/admin/products` - Create product (admin)
-- `PUT /api/admin/products/:id` - Update product (admin)
-- `DELETE /api/admin/products/:id` - Delete product (admin)
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| `GET` | `/api/products` | ดูสินค้าทั้งหมด (pagination & filters) | ❌ |
+| `GET` | `/api/products/:id` | ดูรายละเอียดสินค้า | ❌ |
+| `GET` | `/api/products/category/:categoryId` | ดูสินค้าตามหมวดหมู่ | ❌ |
 
 ### Categories
-- `GET /api/categories` - Get all categories
-- `GET /api/categories/:id` - Get category by ID
-- `POST /api/admin/categories` - Create category (admin)
-- `PUT /api/admin/categories/:id` - Update category (admin)
-- `DELETE /api/admin/categories/:id` - Delete category (admin)
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| `GET` | `/api/categories` | ดูหมวดหมู่ทั้งหมด | ❌ |
+| `GET` | `/api/categories/:id` | ดูรายละเอียดหมวดหมู่ | ❌ |
 
 ### Cart
-- `GET /api/cart` - Get user's cart (protected)
-- `POST /api/cart` - Add item to cart (protected)
-- `PUT /api/cart/:id` - Update cart item quantity (protected)
-- `DELETE /api/cart/:id` - Remove item from cart (protected)
-- `DELETE /api/cart` - Clear cart (protected)
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| `GET` | `/api/cart` | ดูตะกร้าสินค้า | ✅ |
+| `POST` | `/api/cart` | เพิ่มสินค้าลงตะกร้า | ✅ |
+| `PUT` | `/api/cart/:id` | อัปเดตจำนวนสินค้า | ✅ |
+| `DELETE` | `/api/cart/:id` | ลบสินค้าออกจากตะกร้า | ✅ |
+| `DELETE` | `/api/cart` | ล้างตะกร้าทั้งหมด | ✅ |
 
 ### Orders
-- `POST /api/orders` - Create order from cart (protected)
-- `GET /api/orders` - Get user's orders (protected)
-- `GET /api/orders/:id` - Get order details (protected)
-- `GET /api/admin/orders` - Get all orders (admin)
-- `PUT /api/admin/orders/:id/status` - Update order status (admin)
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| `POST` | `/api/orders` | สร้างคำสั่งซื้อจากตะกร้า | ✅ |
+| `GET` | `/api/orders` | ดูประวัติคำสั่งซื้อ | ✅ |
+| `GET` | `/api/orders/:id` | ดูรายละเอียดคำสั่งซื้อ | ✅ |
+
+### Admin
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| `POST` | `/api/admin/products` | เพิ่มสินค้า | 🔑 Admin |
+| `PUT` | `/api/admin/products/:id` | แก้ไขสินค้า | 🔑 Admin |
+| `DELETE` | `/api/admin/products/:id` | ลบสินค้า | 🔑 Admin |
+| `POST` | `/api/admin/categories` | เพิ่มหมวดหมู่ | 🔑 Admin |
+| `PUT` | `/api/admin/categories/:id` | แก้ไขหมวดหมู่ | 🔑 Admin |
+| `DELETE` | `/api/admin/categories/:id` | ลบหมวดหมู่ | 🔑 Admin |
+| `GET` | `/api/admin/orders` | ดูคำสั่งซื้อทั้งหมด | 🔑 Admin |
+| `PUT` | `/api/admin/orders/:id/status` | อัปเดตสถานะคำสั่งซื้อ | 🔑 Admin |
+
+---
 
 ## ✨ Features
 
-### For Customers
-- ✅ User registration and authentication
-- ✅ Browse products with search and category filtering
-- ✅ Product pagination
-- ✅ Add products to cart
-- ✅ Update cart quantities
-- ✅ Checkout and order placement
-- ✅ View order history
-- ✅ Responsive design for mobile and desktop
+### 👤 สำหรับลูกค้า (Customer)
 
-### For Admins
-- ✅ Product management (CRUD)
-- ✅ Category management (CRUD)
-- ✅ Order management and status updates
-- ✅ View all orders
+- ✅ สมัครสมาชิกและเข้าสู่ระบบ (JWT Authentication)
+- ✅ ลืมรหัสผ่าน / รีเซ็ตรหัสผ่าน
+- ✅ เรียกดูสินค้าพร้อมค้นหาและกรองตามหมวดหมู่
+- ✅ ระบบ Pagination สำหรับรายการสินค้า
+- ✅ เพิ่มสินค้าลงตะกร้า & อัปเดตจำนวน
+- ✅ Checkout และสั่งซื้อสินค้า
+- ✅ ดูประวัติคำสั่งซื้อและสถานะการจัดส่ง (My Orders)
+- ✅ Responsive Design รองรับทั้ง Mobile และ Desktop
 
-### Design Features
-- 🎨 Pet-themed vibrant color palette
-- 🐾 Custom animations and transitions
-- 📱 Fully responsive design
-- ⚡ Fast and smooth user experience
-- 🔒 Secure authentication with JWT
-- 💾 Persistent cart with Zustand
+### 🛡️ สำหรับผู้ดูแลระบบ (Admin)
+
+- ✅ Admin Dashboard — ภาพรวมของระบบ
+- ✅ จัดการสินค้า (เพิ่ม, แก้ไข, ลบ)
+- ✅ จัดการหมวดหมู่ (เพิ่ม, แก้ไข, ลบ)
+- ✅ จัดการคำสั่งซื้อ & อัปเดตสถานะ
+- ✅ Protected Routes — เฉพาะ Admin เท่านั้น
+
+### 🎨 Design & UX
+
+- 🐾 Pet-themed vibrant color palette
+- ⚡ Lazy Loading สำหรับหน้า Admin (Code Splitting)
+- 🔔 Toast Notification System
+- 📦 Global Modal System
+- 📱 Fully Responsive Design
+- 🎭 Smooth Animations & Transitions
+- 🔒 Secure Authentication with JWT
+- 💾 Persistent Cart with Zustand
+
+---
 
 ## 🎨 Design System
 
-The project uses a comprehensive design system with:
-- Custom CSS variables for colors, typography, spacing
-- Vibrant pet-friendly color palette (oranges, greens, blues)
-- Inter font from Google Fonts
-- Smooth animations and transitions
-- Responsive utilities
-- Reusable component styles
+โปรเจคใช้ Design System ที่ครอบคลุม:
 
-## 🔐 Authentication
+- **CSS Variables** สำหรับ colors, typography, spacing
+- **Pet-friendly color palette** (oranges, greens, blues)
+- **Inter Font** จาก Google Fonts
+- **Glassmorphism UI** สำหรับหน้า Admin
+- **Smooth animations & transitions**
+- **Responsive utilities**
+- **Reusable component styles**
 
-- JWT-based authentication
-- bcrypt password hashing
-- Protected routes and API endpoints
-- Token stored in localStorage
-- Auto-redirect on token expiration
+---
+
+## 🔐 Authentication & Security
+
+| Feature | Implementation |
+|---------|---------------|
+| Authentication | JWT-based tokens |
+| Password Hashing | bcrypt |
+| Protected Routes | Frontend route guards + Backend middleware |
+| Admin Authorization | Role-based middleware |
+| Token Storage | localStorage |
+| Token Expiry | Auto-redirect on expiration |
+| Password Recovery | Forgot Password / Reset Password flow |
+| CORS | Configured for cross-origin requests |
+| Docker Security | Non-root user in containers |
+
+---
+
+## 📖 API Documentation (Swagger)
+
+โปรเจคมี Swagger Documentation แบบ interactive:
+
+```
+http://localhost:8080/swagger/index.html
+```
+
+สร้างจาก annotations ใน Go source code โดยใช้ `swaggo/swag` — ครอบคลุม API ทั้งหมดพร้อม request/response schemas
+
+---
+
+## 🐳 Docker Architecture
+
+```
+┌──────────────────────────────────────────┐
+│           docker-compose.yml             │
+├──────────────────┬───────────────────────┤
+│  ecommerce-      │  ecommerce-           │
+│  frontend        │  backend              │
+│  (Nginx:80)      │  (Gin:8080)           │
+│                  │                       │
+│  Node 22 Build   │  Go 1.25 Build        │
+│  → Nginx Serve   │  → Alpine Runtime     │
+├──────────────────┴───────────────────────┤
+│           ecommerce-network (bridge)     │
+└──────────────────────────────────────────┘
+                    │
+                    ▼
+          ┌──────────────────┐
+          │  Supabase        │
+          │  (PostgreSQL)    │
+          └──────────────────┘
+```
+
+- **Multi-stage builds** เพื่อลดขนาด image
+- **Health checks** ทั้ง frontend และ backend
+- **Non-root user** เพื่อความปลอดภัย
+- **Bridge network** สำหรับการสื่อสารระหว่าง services
+
+---
 
 ## 📝 License
 
