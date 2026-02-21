@@ -13,7 +13,7 @@ export default defineConfig({
         video: 'retain-on-failure',
         screenshot: 'only-on-failure',
 
-        headless: false,
+        headless: !!process.env.CI,
     },
     projects: [
         {
