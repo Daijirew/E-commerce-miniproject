@@ -11,34 +11,66 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # --- เพิ่มท่อนนี้เข้าไปครับ (Spy Step) ---
-      - name: 🕵️ Check Files (Debug)
+      # =========================================================
+      # 🚨 ส่วนที่ต้องเพิ่มเข้ามา: จำลองระบบและรัน Automated Test
+      # =========================================================
+      
+      # 1. สร้างไฟล์ .env จำลองให้ Docker Compose รันติด (เพราะปกติเราไม่เอา .env ขึ้น GitHub)
+      - name: Create Dummy .env for Testing
         run: |
-          echo "=== List of all files ==="
-          ls -la
-          echo "--- Inside backend folder? ---"
-          ls -R
-      # --------------------------------------
+          touch .env
+          echo "PORT=8080" >> .env
+          echo "GIN_MODE=release" >> .env
+          # ถ้ามี DB URL หรือ Secret อื่นๆ ที่จำเป็นต้องใช้ตอนเทสต์ ให้ใส่เพิ่มตรงนี้
+
+      # 2. สั่งรัน Backend & Frontend ขึ้นมาบนเครื่อง CI (ทำงานอยู่เบื้องหลัง)
+      - name: Start Services for Testing
+        run: docker compose up -d --build
+
+      # 3. ติดตั้ง Node.js และ Playwright
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - name: Install dependencies
+        run: npm ci # (หรือ npm install ขึ้นอยู่กับโปรเจกต์ของคุณ)
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
+      # 4. สั่งรัน Playwright Test
+      - name: Run Playwright tests
+        run: npx playwright test
+
+      # 5. เก็บผลลัพธ์ (Trace/Video) ไว้ดูเผื่อเทสต์พัง
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+      # =========================================================
+      # ✅ ถ้า Test ผ่านฉลุย ถึงจะทำงานส่วนล่างนี้ต่อ (โค้ดเดิมของคุณ)
+      # =========================================================
 
       - name: Check Secret Availability
-        # ... (โค้ดเดิมของคุณต่อจากตรงนี้)
         run: |
           if [ -z "${{ secrets.DOCKER_PASSWORD }}" ]; then
             echo "::error::CRITICAL ERROR: Secret is EMPTY! (หากุญแจไม่เจอ)"
             exit 1
           else
-            echo "SUCCESS: Secret detected (พบกุญแจแล้ว ความยาว ${#DOCKER_TOKEN} ตัวอักษร)"
+            echo "SUCCESS: Secret detected"
           fi
         env:
           DOCKER_TOKEN: ${{ secrets.DOCKER_PASSWORD }}
 
-      # ส่วน Login เดิมของคุณ
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}  # แก้กลับเป็นอันนี้
+          username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-      # 3. สร้าง Backend
+
       - name: Build Backend
         uses: docker/build-push-action@v5
         with:
@@ -46,7 +78,6 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/ecommerce-backend:latest
 
-      # 4. สร้าง Frontend
       - name: Build Frontend
         uses: docker/build-push-action@v5
         with:
@@ -54,7 +85,6 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/ecommerce-frontend:latest
 
-      # 5. สั่ง Server (Deploy)
       - name: Deploy to Server
         uses: appleboy/ssh-action@v1.0.3
         with:

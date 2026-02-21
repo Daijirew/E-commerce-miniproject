@@ -1,0 +1,14 @@
+{
+    "name": "e-commerce-e2e",
+    "version": "1.0.0",
+    "description": "E2E tests for e-commerce project",
+    "scripts": {
+        "test": "npx playwright test",
+        "test:ui": "npx playwright test --ui",
+        "test:report": "npx playwright show-report"
+    },
+    "devDependencies": {
+        "@playwright/test": "^1.40.0",
+        "typescript": "^5.0.0"
+    }
+}
