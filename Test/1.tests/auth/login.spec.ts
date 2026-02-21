@@ -25,16 +25,22 @@ test.describe('Authentication Tests', () => {
             await loginPage.goto();
             await loginPage.login('daijirew123@gmail.com', 'wrongpassword');
 
-            // Find the error message
-            await expect(page.locator('.error-message')).toContainText('⚠️ Invalid email or password', { timeout: 10000 });
+            // ใช้ RegEx /.../ เพื่อตรวจสอบข้อความแบบ OR (เจออันใดอันหนึ่งก็ให้ผ่าน)
+            await expect(page.locator('.error-message')).toContainText(
+                /⚠️ Invalid email or password|⚠️ อีเมลหรือรหัสผ่านไม่ถูกต้อง/,
+                { timeout: 10000 }
+            );
         });
 
         test('Login fails with non-existent email', async ({ loginPage, page }) => {
             await loginPage.goto();
             await loginPage.login('notfound@fake.com', '123456');
 
-            // Find the error message
-            await expect(page.locator('.error-message')).toContainText('⚠️ Invalid email or password', { timeout: 10000 });
+            // ใช้ RegEx แบบเดียวกัน
+            await expect(page.locator('.error-message')).toContainText(
+                /⚠️ Invalid email or password|⚠️ อีเมลหรือรหัสผ่านไม่ถูกต้อง/,
+                { timeout: 10000 }
+            );
         });
 
         test('Login fails when fields are empty', async ({ loginPage }) => {

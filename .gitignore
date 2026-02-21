@@ -1,0 +1,74 @@
+# ----------------------------------------------------------------------
+# Root / Node
+# ----------------------------------------------------------------------
+node_modules/
+npm-debug.log
+yarn-error.log
+.env
+.env.*
+!.env.example
+
+# ----------------------------------------------------------------------
+# Testing (Playwright & Coverage)
+# ----------------------------------------------------------------------
+playwright-report/
+test-results/
+playwright/.cache/
+coverage/
+.nyc_output/
+
+# ----------------------------------------------------------------------
+# Backend (Go)
+# ----------------------------------------------------------------------
+/backend/bin/
+/backend/tmp/
+/backend/main
+/backend/pet-food-ecommerce
+/backend/ecommerce-api
+# OS-specific Go binaries
+/backend/*.exe
+/backend/*.exe~
+/backend/*.dll
+/backend/*.so
+/backend/*.dylib
+
+# ----------------------------------------------------------------------
+# Frontend (Node.js / React / Vite)
+# ----------------------------------------------------------------------
+/frontend/node_modules/
+/frontend/dist/
+/frontend/build/
+/frontend/.eslintcache
+/frontend/.vite/
+
+# ----------------------------------------------------------------------
+# IDEs and Editors
+# ----------------------------------------------------------------------
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.swp
+*.swo
+*~
+
+# ----------------------------------------------------------------------
+# OS generated files
+# ----------------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ----------------------------------------------------------------------
+# Logs and Databases
+# ----------------------------------------------------------------------
+*.log
+/backend/*.db
+/backend/*.sqlite
+/backend/*.sqlite3
