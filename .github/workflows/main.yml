@@ -12,18 +12,17 @@ jobs:
         uses: actions/checkout@v4
 
       # =========================================================
-      # 🚨 ส่วนที่ต้องเพิ่มเข้ามา: จำลองระบบและรัน Automated Test
+      # 🚨 ส่วนจำลองระบบและรัน Automated Test
       # =========================================================
       
-      # 1. สร้างไฟล์ .env จำลองให้ Docker Compose รันติด (เพราะปกติเราไม่เอา .env ขึ้น GitHub)
+      # 1. สร้างไฟล์ .env จำลองให้ Docker Compose รันติด
       - name: Create Dummy .env for Testing
         run: |
           touch .env
           echo "PORT=8080" >> .env
           echo "GIN_MODE=release" >> .env
-          # ถ้ามี DB URL หรือ Secret อื่นๆ ที่จำเป็นต้องใช้ตอนเทสต์ ให้ใส่เพิ่มตรงนี้
 
-      # 2. สั่งรัน Backend & Frontend ขึ้นมาบนเครื่อง CI (ทำงานอยู่เบื้องหลัง)
+      # 2. สั่งรัน Backend & Frontend ขึ้นมาบนเครื่อง CI
       - name: Start Services for Testing
         run: docker compose up -d --build
 
@@ -32,14 +31,20 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
+          
       - name: Install dependencies
-        run: npm ci # (หรือ npm install ขึ้นอยู่กับโปรเจกต์ของคุณ)
+        run: npm ci 
+        # 💡 ถ้ารันแล้ว Error หา package.json ไม่เจอ ให้เพิ่มบรรทัดล่างนี้ (เอาเครื่องหมาย # ออก)
+        # working-directory: ./frontend
+
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
+        # working-directory: ./frontend
 
       # 4. สั่งรัน Playwright Test
       - name: Run Playwright tests
         run: npx playwright test
+        # working-directory: ./frontend
 
       # 5. เก็บผลลัพธ์ (Trace/Video) ไว้ดูเผื่อเทสต์พัง
       - name: Upload Playwright report
@@ -47,11 +52,11 @@ jobs:
         if: always()
         with:
           name: playwright-report
-          path: playwright-report/
+          path: playwright-report/ 
           retention-days: 30
 
       # =========================================================
-      # ✅ ถ้า Test ผ่านฉลุย ถึงจะทำงานส่วนล่างนี้ต่อ (โค้ดเดิมของคุณ)
+      # ✅ ถ้า Test ผ่านฉลุย ถึงจะทำงานส่วนล่างนี้ต่อ
       # =========================================================
 
       - name: Check Secret Availability
@@ -96,6 +101,7 @@ jobs:
             docker compose pull
             docker compose up -d --remove-orphans
             docker image prune -f
+            
       - name: Deploy to AWS EC2 Server
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -103,7 +109,7 @@ jobs:
           username: ${{ secrets.AWS_USERNAME }}
           key: ${{ secrets.AWS_SSH_KEY }}
           script: |
-            # เปลี่ยน path ด้านล่างนี้ให้ตรงกับโฟลเดอร์โปรเจกต์บน AWS ของคุณ
+            # Path ถูกต้องตามโฟลเดอร์บน AWS แล้ว
             cd /home/ubuntu/E-commerce-miniproject
             docker compose pull
             docker compose up -d --remove-orphans
