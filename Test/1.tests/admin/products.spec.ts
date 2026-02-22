@@ -24,7 +24,7 @@ test.describe('Admin Product Management Tests', () => {
 
         await adminDashboardPage.navigateToProducts();
 
-        // 1. Add Product
+        // 1. Add Product 
         await adminProductsPage.addProduct(testProduct);
         await adminProductsPage.expectProductVisible(testProduct.name);
 
