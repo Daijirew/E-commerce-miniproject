@@ -85,7 +85,7 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/ecommerce-frontend:latest
 
-      - name: Deploy to Server
+      - name: Deploy to OpenLandscape Server
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.OLS_HOST }}
@@ -93,6 +93,19 @@ jobs:
           key: ${{ secrets.OLS_SSH_KEY }}
           script: |
             cd /root/myapp
+            docker compose pull
+            docker compose up -d --remove-orphans
+            docker image prune -f
+            
+      - name: Deploy to AWS EC2 Server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.AWS_HOST }}
+          username: ${{ secrets.AWS_USERNAME }}
+          key: ${{ secrets.AWS_SSH_KEY }}
+          script: |
+            # เปลี่ยน path ด้านล่างนี้ให้ตรงกับโฟลเดอร์โปรเจกต์บน AWS ของคุณ
+            cd /home/ubuntu/myapp 
             docker compose pull
             docker compose up -d --remove-orphans
             docker image prune -f
