@@ -104,7 +104,7 @@ jobs:
           key: ${{ secrets.AWS_SSH_KEY }}
           script: |
             # เปลี่ยน path ด้านล่างนี้ให้ตรงกับโฟลเดอร์โปรเจกต์บน AWS ของคุณ
-            cd /home/ubuntu/myapp 
+            cd /home/ubuntu/E-commerce-miniproject
             docker compose pull
             docker compose up -d --remove-orphans
             docker image prune -f
