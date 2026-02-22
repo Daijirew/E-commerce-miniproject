@@ -12,7 +12,7 @@ test.describe('Admin Product Management Tests', () => {
     };
 
     test.beforeEach(async ({ loginPage }) => {
-        // Log in before each test as admin
+        // Log in before each test as admin.
         await loginPage.goto();
         await loginPage.login(adminEmail, adminPassword);
     });
