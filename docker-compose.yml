@@ -1,9 +1,8 @@
 services:
   # Backend Service (Golang)
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    # 🚨 เปลี่ยนตรงนี้ให้เป็น Username Docker Hub ของคุณ
+    image: poomrapee678/ecommerce-backend:latest
     container_name: ecommerce-backend
     ports:
       - "${PORT}:${PORT}" # ใช้ Port 8080 ตามที่ตั้งไว้
@@ -30,9 +29,8 @@ services:
 
   # Frontend Service (React + Nginx)
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    # 🚨 เปลี่ยนตรงนี้ให้เป็น Username Docker Hub ของคุณ
+    image: poomrapee678/ecommerce-frontend:latest
     container_name: ecommerce-frontend
     ports:
       - "80:80"
