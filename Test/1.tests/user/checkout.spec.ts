@@ -22,21 +22,26 @@ test.describe('User Shopping & Checkout Tests', () => {
         // 1. Search and Add to Cart
         await productsPage.goto();
 
-        // Find a specific product (assumes 'Cat Food' or similar exists)
+        // ค้นหาสินค้า
         const targetSearch = 'อาหารแมว';
         await productsPage.filterByCategory(targetSearch);
 
-        // Ensure there is at least one product card
-        const firstProductCard = productsPage.productCards.first();
-        await expect(firstProductCard).toBeVisible();
+        // 💡 แก้ไข: กรองหาการ์ดสินค้าตัวแรกที่มีปุ่ม "ใส่ตะกร้า" และ "ไม่ติดสถานะ disabled"
+        const availableProductCard = productsPage.productCards.filter({
+            has: page.locator('button:has-text("ใส่ตะกร้า"):not([disabled])')
+        }).first();
 
-        // Get the product name to verify it later in the cart
-        const productTitleLocator = firstProductCard.locator('h3').first();
+        // รอให้การ์ดสินค้าพร้อมแสดงผล
+        await expect(availableProductCard).toBeVisible();
+
+        // ดึงชื่อสินค้าเพื่อนำไปใช้ตรวจสอบในตะกร้า
+        const productTitleLocator = availableProductCard.locator('h3').first();
         await expect(productTitleLocator).toBeVisible();
         const productName = await productTitleLocator.innerText();
 
-        // Add to cart
-        const addToCartBtn = firstProductCard.locator('button:has-text("ใส่ตะกร้า")');
+        // 💡 แก้ไข: ดึงปุ่มใส่ตะกร้า และใช้ expect บังคับรอให้ปุ่มใช้งานได้ชัวร์ๆ ก่อนค่อยกดคลิก
+        const addToCartBtn = availableProductCard.locator('button:has-text("ใส่ตะกร้า")');
+        await expect(addToCartBtn).toBeEnabled();
         await addToCartBtn.click();
 
         // 2. Go to Cart and Verify
@@ -48,6 +53,7 @@ test.describe('User Shopping & Checkout Tests', () => {
         await expect(page).toHaveURL('/checkout');
 
         // 4. Fill Address and Place Order
+        // (ตรวจสอบให้แน่ใจว่ามีการประกาศตัวแปร deliveryAddress ไว้ด้านบนของไฟล์ด้วยนะครับ)
         await checkoutPage.fillAddress(deliveryAddress);
         await checkoutPage.placeOrder();
 
