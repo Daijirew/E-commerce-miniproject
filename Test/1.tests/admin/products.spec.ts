@@ -20,7 +20,6 @@ test.describe('Admin Product Management Tests', () => {
     test('Admin can add and delete a product successfully', async ({ adminDashboardPage, adminProductsPage, page }) => {
         // Wait for redirect to admin dash
         await expect(page).toHaveURL('/admin');
-
         await adminDashboardPage.navigateToProducts();
 
         // 1. Add Product 
