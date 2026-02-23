@@ -21,7 +21,6 @@ test.describe('Admin Product Management Tests', () => {
         // Wait for redirect to admin dash
         await expect(page).toHaveURL('/admin');
 
-
         await adminDashboardPage.navigateToProducts();
 
         // 1. Add Product 
