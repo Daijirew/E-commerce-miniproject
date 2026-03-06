@@ -20,10 +20,7 @@ func ConnectDatabase() {
 	// Try SQLite first for local testing if DATABASE_URL is empty or invalid
 	if databaseURL == "" || databaseURL == "sqlite" {
 		log.Println("Using SQLite for local testing...")
-		DB, err = gorm.Open(sqlite.Dialector{
-			DriverName: "sqlite",
-			DSN:        "test.db",
-		}, &gorm.Config{})
+		DB, err = gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
 		if err != nil {
 			log.Fatal("Failed to connect to SQLite database:", err)
 		}
