@@ -55,9 +55,9 @@ USER appuser
 # Expose application port
 EXPOSE 8080
 
-# Health check
+# Health check (BusyBox wget does not support --spider or --no-verbose)
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:8080/api/health || exit 1
+    CMD wget -q -O /dev/null http://localhost:8080/api/health || exit 1
 
 # Run the application
 CMD ["./main"]
