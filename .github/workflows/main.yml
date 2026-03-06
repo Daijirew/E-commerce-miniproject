@@ -16,15 +16,26 @@ jobs:
       # =========================================================
       
       # 1. สร้างไฟล์ .env จำลองให้ Docker Compose รันติด
+      # DATABASE_URL ตั้งใจปล่อยว่าง → backend จะใช้ SQLite แทน ไม่ต้องรอ TCP timeout จาก Supabase
       - name: Create Dummy .env for Testing
         run: |
           touch .env
           echo "PORT=8080" >> .env
           echo "GIN_MODE=release" >> .env
+          echo "JWT_SECRET=ci-test-secret" >> .env
 
       # 2. สั่งรัน Backend & Frontend ขึ้นมาบนเครื่อง CI
       - name: Start Services for Testing
         run: docker compose up -d --build
+
+      # 2.1 แสดง container logs เพื่อ debug เมื่อ backend unhealthy
+      - name: Show Backend Logs (debug)
+        if: always()
+        run: |
+          echo "=== Backend container logs ==="
+          docker logs ecommerce-backend || echo "(no logs available)"
+          echo "=== Backend container inspect ==="
+          docker inspect ecommerce-backend --format='{{json .State}}' || true
 
       # 3. ติดตั้ง Node.js และ Playwright
       - name: Setup Node.js

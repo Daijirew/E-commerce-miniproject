@@ -3,6 +3,8 @@ services:
   backend:
     # 🚨 เปลี่ยนตรงนี้ให้เป็น Username Docker Hub ของคุณ
     image: poomrapee678/ecommerce-backend:latest
+    build:
+      context: ./backend
     container_name: ecommerce-backend
     ports:
       # ใส่ค่า Default 8080 ไว้เผื่อกรณีหาตัวแปร PORT ไม่เจอ
@@ -21,7 +23,7 @@ services:
       - ecommerce-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:${PORT:-8080}/api/health"]
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:${PORT:-8080}/api/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -31,6 +33,8 @@ services:
   frontend:
     # 🚨 เปลี่ยนตรงนี้ให้เป็น Username Docker Hub ของคุณ
     image: poomrapee678/ecommerce-frontend:latest
+    build:
+      context: ./frontend
     container_name: ecommerce-frontend
     ports:
       - "80:80"

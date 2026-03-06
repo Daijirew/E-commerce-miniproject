@@ -28,7 +28,8 @@ RUN CGO_ENABLED=1 GOOS=linux go build -a -installsuffix cgo -o main .
 FROM alpine:latest
 
 # Install runtime dependencies
-RUN apk --no-cache add ca-certificates tzdata
+# libgcc + sqlite-libs required for CGO-enabled binary (go-sqlite3)
+RUN apk --no-cache add ca-certificates tzdata libgcc sqlite-libs
 
 # Set timezone (optional)
 ENV TZ=Asia/Bangkok
@@ -55,9 +56,9 @@ USER appuser
 # Expose application port
 EXPOSE 8080
 
-# Health check
+# Health check (BusyBox wget does not support --spider or --no-verbose)
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
+    CMD wget -q -O /dev/null http://localhost:8080/api/health || exit 1
 
 # Run the application
 CMD ["./main"]

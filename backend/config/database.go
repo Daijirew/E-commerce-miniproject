@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
@@ -20,10 +21,7 @@ func ConnectDatabase() {
 	// Try SQLite first for local testing if DATABASE_URL is empty or invalid
 	if databaseURL == "" || databaseURL == "sqlite" {
 		log.Println("Using SQLite for local testing...")
-		DB, err = gorm.Open(sqlite.Dialector{
-			DriverName: "sqlite",
-			DSN:        "test.db",
-		}, &gorm.Config{})
+		DB, err = gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
 		if err != nil {
 			log.Fatal("Failed to connect to SQLite database:", err)
 		}
@@ -33,7 +31,16 @@ func ConnectDatabase() {
 
 	// Try PostgreSQL/Supabase connection
 	log.Println("Attempting to connect to PostgreSQL...")
-	DB, err = gorm.Open(postgres.Open(databaseURL), &gorm.Config{})
+	// เพิ่ม connect_timeout=10 เพื่อป้องกัน TCP hang นาน
+	connStr := databaseURL
+	if !contains(databaseURL, "connect_timeout") {
+		separator := "?"
+		if contains(databaseURL, "?") {
+			separator = "&"
+		}
+		connStr = databaseURL + separator + "connect_timeout=10"
+	}
+	DB, err = gorm.Open(postgres.Open(connStr), &gorm.Config{})
 	if err != nil {
 		log.Printf("⚠️  Failed to connect to PostgreSQL: %v", err)
 		log.Println("Falling back to SQLite for local testing...")
@@ -52,4 +59,8 @@ func ConnectDatabase() {
 
 func GetDB() *gorm.DB {
 	return DB
+}
+
+func contains(s, substr string) bool {
+	return strings.Contains(s, substr)
 }
