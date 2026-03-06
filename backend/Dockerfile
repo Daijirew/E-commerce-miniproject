@@ -28,7 +28,8 @@ RUN CGO_ENABLED=1 GOOS=linux go build -a -installsuffix cgo -o main .
 FROM alpine:latest
 
 # Install runtime dependencies
-RUN apk --no-cache add ca-certificates tzdata
+# libgcc + sqlite-libs required for CGO-enabled binary (go-sqlite3)
+RUN apk --no-cache add ca-certificates tzdata libgcc sqlite-libs
 
 # Set timezone (optional)
 ENV TZ=Asia/Bangkok

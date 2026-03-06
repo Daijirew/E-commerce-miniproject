@@ -30,6 +30,15 @@ jobs:
       - name: Start Services for Testing
         run: docker compose up -d --build
 
+      # 2.1 แสดง container logs เพื่อ debug เมื่อ backend unhealthy
+      - name: Show Backend Logs (debug)
+        if: always()
+        run: |
+          echo "=== Backend container logs ==="
+          docker logs ecommerce-backend || echo "(no logs available)"
+          echo "=== Backend container inspect ==="
+          docker inspect ecommerce-backend --format='{{json .State}}' || true
+
       # 3. ติดตั้ง Node.js และ Playwright
       - name: Setup Node.js
         uses: actions/setup-node@v4
