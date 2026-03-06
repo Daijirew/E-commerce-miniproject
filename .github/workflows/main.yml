@@ -21,6 +21,10 @@ jobs:
           touch .env
           echo "PORT=8080" >> .env
           echo "GIN_MODE=release" >> .env
+          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> .env
+          echo "SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}" >> .env
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
 
       # 2. สั่งรัน Backend & Frontend ขึ้นมาบนเครื่อง CI
       - name: Start Services for Testing
